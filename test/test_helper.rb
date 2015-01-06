@@ -9,7 +9,7 @@ require 'minitest/autorun'
 require 'securerandom'
 
 # Establish database connection
-ActiveRecord::Base.establish_connection('adapter' => RUBY_PLATFORM == 'java' ? 'jdbcsqlite3' : 'sqlite3', 'database' => ':memory:')
+ActiveRecord::Base.establish_connection('adapter' => 'sqlite3', 'database' => ':memory:')
 ActiveRecord::Base.logger = Logger.new("#{File.dirname(__FILE__)}/../log/active_record.log")
 
 ActiveSupport.test_order = :random if ActiveSupport.gem_version >= Gem::Version.new('4.2.0')
