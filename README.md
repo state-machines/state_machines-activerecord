@@ -1,3 +1,6 @@
+[![Build Status](https://travis-ci.org/state-machines/state_machines-activerecord.svg?branch=master)](https://travis-ci.org/state-machines/state_machines-activerecord)
+[![Code Climate](https://codeclimate.com/github/state-machines/state_machines-activerecord.png)](https://codeclimate.com/github/state-machines/state_machines-activerecord)
+
 # StateMachines Active Record Integration
 
 The Active Record integration adds support for database transactions, automatically
