@@ -1,0 +1,21 @@
+language: ruby
+sudo: false
+cache: bundler
+
+rvm:
+  - 2.1
+  - 2.2
+  - jruby-19mode
+  - jruby
+  - rbx-2
+
+gemfile:
+  - gemfiles/active_record_4.1.gemfile
+  - gemfiles/active_record_4.2.gemfile
+
+matrix:
+  allow_failures:
+    - rvm: jruby
+    - rvm: jruby-19mode
+    - rvm: rbx-2
+    - gemfile: gemfiles/active_record_4.2.gemfile #let fix this.
