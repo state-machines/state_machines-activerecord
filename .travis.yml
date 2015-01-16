@@ -18,4 +18,3 @@ matrix:
     - rvm: jruby
     - rvm: jruby-19mode
     - rvm: rbx-2
-    - gemfile: gemfiles/active_record_4.2.gemfile #let fix this.
