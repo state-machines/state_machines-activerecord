@@ -6,13 +6,11 @@ class MachineWithInternationalizationTest < BaseTestCase
 
     # Initialize the backend
     StateMachines::Machine.new(new_model)
-    # I18n.backend.translate(:en, 'activerecord.errors.messages.invalid_transition', :event => 'ignite', :value => 'idling')
 
     @model = new_model
   end
 
   def test_should_use_defaults
-    skip 'Someone should fix this'
     I18n.backend.store_translations(:en, {
                                            :activerecord => {:errors => {:messages => {:invalid_transition => "cannot #{interpolation_key('event')}"}}}
                                        })
@@ -24,7 +22,7 @@ class MachineWithInternationalizationTest < BaseTestCase
     record = @model.new(:state => 'idling')
 
     machine.invalidate(record, :state, :invalid_transition, [[:event, 'ignite']])
-    assert_equal ['State cannot ignite'], record.errors.full_messages
+    assert_equal ['State cannot transition via "ignite"'], record.errors.full_messages
   end
 
   def test_should_allow_customized_error_key

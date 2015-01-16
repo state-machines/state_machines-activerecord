@@ -12,7 +12,10 @@ require 'securerandom'
 ActiveRecord::Base.establish_connection('adapter' => 'sqlite3', 'database' => ':memory:')
 ActiveRecord::Base.logger = Logger.new("#{File.dirname(__FILE__)}/../log/active_record.log")
 
-ActiveSupport.test_order = :random if ActiveSupport.gem_version >= Gem::Version.new('4.2.0')
+if ActiveSupport.gem_version >= Gem::Version.new('4.2.0')
+  ActiveSupport.test_order = :random
+  ActiveRecord::Base.raise_in_transactional_callbacks = true
+end
 
 class BaseTestCase < ActiveSupport::TestCase
   protected

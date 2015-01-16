@@ -20,7 +20,6 @@ class MachineWithEventAttributesOnValidationTest < BaseTestCase
   end
 
   def test_should_fail_if_event_has_no_transition
-    skip 'TO FIX'
     @record.state = 'idling'
     refute @record.valid?
     assert_equal ['State event cannot transition when idling'], @record.errors.full_messages

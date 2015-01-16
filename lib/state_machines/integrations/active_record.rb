@@ -461,18 +461,20 @@ module StateMachines
         # can be overridden for a new object *prior* to the processing of the
         # attributes passed into #initialize
         define_helper :class, <<-end_eval, __FILE__, __LINE__ + 1
-            def column_defaults(*) #:nodoc:
+          if  ActiveRecord.gem_version >= Gem::Version.new('4.2')
+             def _default_attributes #:nodoc:
+              result = super
+              self.state_machines.initialize_states(nil, :static => :force, :dynamic => false, :to => result)
+              result
+             end
+          else
+             def column_defaults(*) #:nodoc:
               result = super
               # No need to pass in an object, since the overrides will be forced
               self.state_machines.initialize_states(nil, :static => :force, :dynamic => false, :to => result)
               result
-            end
-
-            def _default_attributes #:nodoc:
-              result = super
-              self.state_machines.initialize_states(nil, :static => :force, :dynamic => false, :to => result)
-              result
-            end
+             end
+          end
         end_eval
       end
 
@@ -519,13 +521,13 @@ module StateMachines
       # Creates a scope for finding records *with* a particular state or
       # states for the attribute
       def create_with_scope(name)
-        create_scope(name, lambda { |values| ["#{attribute_column} IN (?)", values] })
+        create_scope(name, ->(values) { ["#{attribute_column} IN (?)", values] })
       end
 
       # Creates a scope for finding records *without* a particular state or
       # states for the attribute
       def create_without_scope(name)
-        create_scope(name, lambda { |values| ["#{attribute_column} NOT IN (?)", values] })
+        create_scope(name, ->(values) { ["#{attribute_column} NOT IN (?)", values] })
       end
 
       # Generates the fully-qualifed column name for this machine's attribute
@@ -545,21 +547,23 @@ module StateMachines
         result
       end
 
-      # Defines a new named scope with the given name
-      def create_scope(name, scope)
-        lambda { |model, values| model.where(scope.call(values)) }
-      end
-
-      # ActiveModel's use of method_missing / respond_to for attribute methods
-      # breaks both ancestor lookups and defined?(super).  Need to special-case
-      # the existence of query attribute methods.
-      def owner_class_ancestor_has_method?(scope, method)
-        scope == :instance && method == "#{attribute}?" ? owner_class : super
-      end
-
       def locale_path
         "#{File.dirname(__FILE__)}/active_record/locale.rb"
       end
+
+      private
+
+        # Defines a new named scope with the given name
+        def create_scope(name, scope)
+          lambda { |model, values| model.where(scope.call(values)) }
+        end
+
+        # ActiveModel's use of method_missing / respond_to for attribute methods
+        # breaks both ancestor lookups and defined?(super).  Need to special-case
+        # the existence of query attribute methods.
+        def owner_class_ancestor_has_method?(scope, method)
+          scope == :instance && method == "#{attribute}?" ? owner_class : super
+        end
     end
   end
   class Machine
@@ -573,7 +577,7 @@ module StateMachines
           if hash.is_a?(Hash)
             hash[attribute.to_s] = value
           else # in ActiveRecord 4.2 hash is an Activerecord::AttributeSet
-            hash.write_cast_value(attribute.to_s, value)
+            hash.write_from_user(attribute.to_s, value)
           end
         else
           write(object, :state, value)
