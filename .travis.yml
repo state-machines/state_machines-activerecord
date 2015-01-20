@@ -5,7 +5,6 @@ cache: bundler
 rvm:
   - 2.1
   - 2.2
-  - jruby-19mode
   - jruby
   - rbx-2
 
@@ -16,5 +15,4 @@ gemfile:
 matrix:
   allow_failures:
     - rvm: jruby
-    - rvm: jruby-19mode
     - rvm: rbx-2
