@@ -3,13 +3,7 @@ require_relative 'test_helper'
 class MachineWithNonColumnStateAttributeDefinedTest < BaseTestCase
   def setup
     @model = new_model do
-      def status=(value)
-        self['status'] = value
-      end
-
-      def status
-        self['status']
-      end
+      attr_accessor :status
     end
 
     @machine = StateMachines::Machine.new(@model, :status, :initial => :parked)

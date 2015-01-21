@@ -5,6 +5,12 @@ class IntegrationTest < BaseTestCase
     assert_equal :active_record, StateMachines::Integrations::ActiveRecord.integration_name
   end
 
+  def test_should_be_before_activemodel
+    integrations = StateMachines::Integrations.list.to_a
+    assert StateMachines::Integrations::ActiveRecord, integrations.first
+    assert StateMachines::Integrations::ActiveModel, integrations.last
+  end
+
   def test_should_match_if_class_inherits_from_active_record
     assert StateMachines::Integrations::ActiveRecord.matches?(new_model)
   end
