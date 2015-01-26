@@ -560,23 +560,4 @@ module StateMachines
         end
     end
   end
-  class Machine
-    # FIXME
-    def initialize_state(object, options = {})
-      state = initial_state(object)
-      if state && (options[:force] || initialize_state?(object))
-        value = state.value
-
-        if hash = options[:to]
-          if hash.is_a?(Hash)
-            hash[attribute.to_s] = value
-          else # in ActiveRecord 4.2 hash is an Activerecord::AttributeSet
-            hash.write_from_user(attribute.to_s, value)
-          end
-        else
-          write(object, :state, value)
-        end
-      end
-    end
-  end
 end
