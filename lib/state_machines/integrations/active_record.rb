@@ -452,7 +452,7 @@ module StateMachines
           define_helper :instance, <<-end_eval, __FILE__, __LINE__ + 1
             def initialize(attributes = nil, options = {})
               super(attributes, options) do |*args|
-                self.class.state_machines.initialize_states(self)
+                self.class.state_machines.initialize_states(self, {}, attributes || {})
                 yield(*args) if block_given?
               end
             end
@@ -474,9 +474,9 @@ module StateMachines
 
           # Initializes dynamic states
           define_helper :instance, <<-end_eval, __FILE__, __LINE__ + 1
-            def initialize(*)
-              super do |*args|
-                self.class.state_machines.initialize_states(self)
+            def initialize(attributes = nil, options = {})
+              super(attributes, options) do |*args|
+                self.class.state_machines.initialize_states(self, {}, attributes || {})
                 yield(*args) if block_given?
               end
             end
@@ -558,25 +558,6 @@ module StateMachines
         def owner_class_ancestor_has_method?(scope, method)
           scope == :instance && method == "#{attribute}?" ? owner_class : super
         end
-    end
-  end
-  class Machine
-    # FIXME
-    def initialize_state(object, options = {})
-      state = initial_state(object)
-      if state && (options[:force] || initialize_state?(object))
-        value = state.value
-
-        if hash = options[:to]
-          if hash.is_a?(Hash)
-            hash[attribute.to_s] = value
-          else # in ActiveRecord 4.2 hash is an Activerecord::AttributeSet
-            hash.write_from_user(attribute.to_s, value)
-          end
-        else
-          write(object, :state, value)
-        end
-      end
     end
   end
 end
