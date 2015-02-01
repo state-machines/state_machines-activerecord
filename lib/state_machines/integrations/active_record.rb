@@ -559,5 +559,6 @@ module StateMachines
           scope == :instance && method == "#{attribute}?" ? owner_class : super
         end
     end
+    register(ActiveRecord)
   end
 end
