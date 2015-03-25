@@ -52,6 +52,15 @@ class Vehicle < ActiveRecord::Base
 end
 ```
 
+### Scopes
+Usage of the generated scopes (assuming default column `state`):
+
+```ruby
+Vehicle.with_state(:parked)                         # also plural #with_states
+Vehicle.without_states(:first_gear, :second_gear)   # also singular #without_state
+```
+
+
 Dependencies
 
 Active Record 4.1+
