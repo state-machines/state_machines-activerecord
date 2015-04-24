@@ -418,7 +418,7 @@ module StateMachines
       include ActiveModel
 
       # The default options to use for state machines using this integration
-      @defaults = {:action => :save}
+      @defaults = {:action => :save, use_transactions: true}
       class << self
         # Classes that inherit from ActiveRecord::Base will automatically use
         # the ActiveRecord integration.
