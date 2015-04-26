@@ -176,9 +176,9 @@ class MachineWithEventAttributesOnSaveTest < BaseTestCase
     assert_equal 'first_gear', @record.state
   end
 
-  def test_should_return_nil_on_manual_rollback
+  def test_should_return_false_on_before_transition_rollback
     @machine.before_transition { raise ActiveRecord::Rollback }
 
-    assert_equal nil, @record.save
+    assert_equal false, @record.save
   end
 end
