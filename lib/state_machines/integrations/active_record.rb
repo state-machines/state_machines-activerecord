@@ -418,7 +418,7 @@ module StateMachines
       include ActiveModel
 
       # The default options to use for state machines using this integration
-      @defaults = {:action => :save}
+      @defaults = {:action => :save, use_transactions: true}
       class << self
         # Classes that inherit from ActiveRecord::Base will automatically use
         # the ActiveRecord integration.
@@ -507,9 +507,7 @@ module StateMachines
 
       # Runs state events around the machine's :save action
       def around_save(object)
-        transaction(object) do
-          object.class.state_machines.transitions(object, action).perform { yield }
-        end
+        object.class.state_machines.transitions(object, action).perform { yield }
       end
 
       # Creates a scope for finding records *with* a particular state or
