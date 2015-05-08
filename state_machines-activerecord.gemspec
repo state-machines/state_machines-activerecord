@@ -10,7 +10,7 @@ Gem::Specification.new do |spec|
   spec.email         = %w(terminale@gmail.com aaron@pluginaweek.org)
   spec.summary       = %q(State machines Active Record Integration)
   spec.description   = %q(Adds support for creating state machines for attributes on ActiveRecord)
-  spec.homepage      = 'https://github.com/seuros/state_machines-activemodel'
+  spec.homepage      = 'https://github.com/seuros/state_machines-activerecord'
   spec.license       = 'MIT'
 
   spec.files         = `git ls-files -z`.split("\x0")
