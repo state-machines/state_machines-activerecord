@@ -113,14 +113,31 @@ class MachineWithEventAttributesOnValidationTest < BaseTestCase
     refute ran_callback
   end
 
-  def test_should_not_run_before_transitions_within_transaction
-    @machine.before_transition { @model.create; raise ActiveRecord::Rollback }
+  def test_should_rollback_before_transitions_with_raise
+    @machine.before_transition {
+      @model.create;
+      raise ActiveRecord::Rollback
+    }
 
     begin
       @record.valid?
     rescue Exception
     end
 
-    assert_equal 1, @model.count
+    assert_equal 0, @model.count
+  end
+
+  def test_should_rollback_before_transitions_with_false
+    @machine.before_transition {
+      @model.create;
+      false
+    }
+
+    begin
+      @record.valid?
+    rescue Exception
+    end
+
+    assert_equal 0, @model.count
   end
 end
