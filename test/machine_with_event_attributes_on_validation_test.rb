@@ -3,7 +3,7 @@ require_relative 'test_helper'
 class MachineWithEventAttributesOnValidationTest < BaseTestCase
   def setup
     @model = new_model
-    @machine = StateMachines::Machine.new(@model)
+    @machine = StateMachines::Machine.new(@model, :use_transactions => false)
     @machine.event :ignite do
       transition :parked => :idling
     end
