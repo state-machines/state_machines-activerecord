@@ -17,7 +17,7 @@ Gem::Specification.new do |spec|
   spec.test_files    = spec.files.grep(/^test\//)
   spec.require_paths = ['lib']
 
-  spec.add_dependency 'state_machines-activemodel', '~> 0.2.0'
+  spec.add_dependency 'state_machines-activemodel', '>= 0.3.0'
   spec.add_dependency 'activerecord' , '~> 4.1'
   spec.add_development_dependency 'rake', '~> 10.3'
   spec.add_development_dependency 'sqlite3', '~> 1.3'

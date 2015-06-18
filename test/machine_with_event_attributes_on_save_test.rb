@@ -176,9 +176,69 @@ class MachineWithEventAttributesOnSaveTest < BaseTestCase
     assert_equal 'first_gear', @record.state
   end
 
-  def test_should_return_nil_on_manual_rollback
-    @machine.before_transition { raise ActiveRecord::Rollback }
-
-    assert_equal nil, @record.save
+  def test_should_yield_one_model!
+    assert_equal true, @record.save!
+    assert_equal 1, @model.count
   end
+
+  # explicit tests of #save and #save! to ensure expected behavior
+  def test_should_yield_two_models_with_before
+    @machine.before_transition { @model.create! }
+    assert_equal true, @record.save
+    assert_equal 2, @model.count
+  end
+
+  def test_should_yield_two_models_with_before!
+    @machine.before_transition { @model.create! }
+    assert_equal true, @record.save!
+    assert_equal 2, @model.count
+  end
+
+  def test_should_raise_on_around_transition_rollback!
+    @machine.before_transition { @model.create! }
+    @machine.around_transition { @model.create!; raise ActiveRecord::Rollback }
+
+    raised = false
+    begin
+      @record.save!
+    rescue Exception
+      raised = true
+    end
+
+    assert_equal true, raised
+    assert_equal 0, @model.count
+  end
+
+  def test_should_return_nil_on_around_transition_rollback
+    @machine.before_transition { @model.create! }
+    @machine.around_transition { @model.create!; raise ActiveRecord::Rollback }
+    assert_equal nil, @record.save
+    assert_equal 0, @model.count
+  end
+
+  def test_should_return_nil_on_before_transition_rollback
+    @machine.before_transition { raise ActiveRecord::Rollback }
+    assert_equal nil, @record.save
+    assert_equal 0, @model.count
+  end
+
+  #
+  # @rosskevin - This fails and I'm not sure why, it was existing behavior.
+  #   see: https://github.com/state-machines/state_machines-activerecord/pull/26#issuecomment-112911886
+  #
+  # def test_should_yield_three_models_with_before_and_around_save
+  #   @machine.before_transition { @model.create!; puts "before ran, now #{@model.count}" }
+  #   @machine.around_transition { @model.create!; puts "around ran, now #{@model.count}" }
+  #
+  #   assert_equal true, @record.save
+  #   assert_equal 3, @model.count
+  # end
+  #
+  # def test_should_yield_three_models_with_before_and_around_save!
+  #   @machine.before_transition { @model.create!; puts "before ran, now #{@model.count}" }
+  #   @machine.around_transition { @model.create!; puts "around ran, now #{@model.count}" }
+  #
+  #   assert_equal true, @record.save!
+  #   assert_equal 3, @model.count
+  # end
 end

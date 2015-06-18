@@ -493,7 +493,8 @@ module StateMachines
               end
               
               def save!(*)
-                self.class.state_machine(#{name.inspect}).send(:around_save, self) { super } || raise(ActiveRecord::RecordInvalid.new(self))
+                result = self.class.state_machine(#{name.inspect}).send(:around_save, self) { super }
+                result || raise(ActiveRecord::RecordInvalid.new(self))
               end
               
               def changed_for_autosave?
