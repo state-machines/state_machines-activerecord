@@ -5,12 +5,12 @@ require 'state_machines/integrations/active_record/version'
 module StateMachines
   module Integrations #:nodoc:
     # Adds support for integrating state machines with ActiveRecord models.
-    # 
+    #
     # == Examples
-    # 
+    #
     # Below is an example of a simple state machine defined within an
     # ActiveRecord model:
-    # 
+    #
     #   class Vehicle < ActiveRecord::Base
     #     state_machine :initial => :parked do
     #       event :ignite do
@@ -18,138 +18,138 @@ module StateMachines
     #       end
     #     end
     #   end
-    # 
+    #
     # The examples in the sections below will use the above class as a
     # reference.
-    # 
+    #
     # == Actions
-    # 
+    #
     # By default, the action that will be invoked when a state is transitioned
     # is the +save+ action.  This will cause the record to save the changes
     # made to the state machine's attribute.  *Note* that if any other changes
     # were made to the record prior to transition, then those changes will
     # be saved as well.
-    # 
+    #
     # For example,
-    # 
+    #
     #   vehicle = Vehicle.create          # => #<Vehicle id: 1, name: nil, state: "parked">
     #   vehicle.name = 'Ford Explorer'
     #   vehicle.ignite                    # => true
     #   vehicle.reload                    # => #<Vehicle id: 1, name: "Ford Explorer", state: "idling">
-    # 
-    # *Note* that if you want a transition to update additional attributes of the record, 
-    # either the changes need to be made in a +before_transition+ callback or you need 
+    #
+    # *Note* that if you want a transition to update additional attributes of the record,
+    # either the changes need to be made in a +before_transition+ callback or you need
     # to save the record manually.
     #
     # == Events
-    # 
+    #
     # As described in StateMachines::InstanceMethods#state_machine, event
     # attributes are created for every machine that allow transitions to be
     # performed automatically when the object's action (in this case, :save)
     # is called.
-    # 
+    #
     # In ActiveRecord, these automated events are run in the following order:
     # * before validation - Run before callbacks and persist new states, then validate
     # * before save - If validation was skipped, run before callbacks and persist new states, then save
     # * after save - Run after callbacks
-    # 
+    #
     # For example,
-    # 
+    #
     #   vehicle = Vehicle.create          # => #<Vehicle id: 1, name: nil, state: "parked">
     #   vehicle.state_event               # => nil
     #   vehicle.state_event = 'invalid'
     #   vehicle.valid?                    # => false
     #   vehicle.errors.full_messages      # => ["State event is invalid"]
-    #   
+    #
     #   vehicle.state_event = 'ignite'
     #   vehicle.valid?                    # => true
     #   vehicle.save                      # => true
     #   vehicle.state                     # => "idling"
     #   vehicle.state_event               # => nil
-    # 
+    #
     # Note that this can also be done on a mass-assignment basis:
-    # 
+    #
     #   vehicle = Vehicle.create(:state_event => 'ignite')  # => #<Vehicle id: 1, name: nil, state: "idling">
     #   vehicle.state                                       # => "idling"
-    # 
+    #
     # This technique is always used for transitioning states when the +save+
     # action (which is the default) is configured for the machine.
-    # 
+    #
     # === Security implications
-    # 
+    #
     # Beware that public event attributes mean that events can be fired
     # whenever mass-assignment is being used.  If you want to prevent malicious
     # users from tampering with events through URLs / forms, the attribute
     # should be protected like so:
-    # 
+    #
     #   class Vehicle < ActiveRecord::Base
     #     attr_protected :state_event
     #     # attr_accessible ... # Alternative technique
-    #     
+    #
     #     state_machine do
     #       ...
     #     end
     #   end
-    # 
+    #
     # If you want to only have *some* events be able to fire via mass-assignment,
     # you can build two state machines (one public and one protected) like so:
-    # 
+    #
     #   class Vehicle < ActiveRecord::Base
     #     attr_protected :state_event # Prevent access to events in the first machine
-    #     
+    #
     #     state_machine do
     #       # Define private events here
     #     end
-    #     
+    #
     #     # Public machine targets the same state as the private machine
     #     state_machine :public_state, :attribute => :state do
     #       # Define public events here
     #     end
     #   end
-    # 
+    #
     # == Transactions
-    # 
+    #
     # In order to ensure that any changes made during transition callbacks
     # are rolled back during a failed attempt, every transition is wrapped
     # within a transaction.
-    # 
+    #
     # For example,
-    # 
+    #
     #   class Message < ActiveRecord::Base
     #   end
-    #   
+    #
     #   Vehicle.state_machine do
     #     before_transition do |vehicle, transition|
     #       Message.create(:content => transition.inspect)
     #       false
     #     end
     #   end
-    #   
+    #
     #   vehicle = Vehicle.create      # => #<Vehicle id: 1, name: nil, state: "parked">
     #   vehicle.ignite                # => false
     #   Message.count                 # => 0
-    # 
+    #
     # *Note* that only before callbacks that halt the callback chain and
     # failed attempts to save the record will result in the transaction being
     # rolled back.  If an after callback halts the chain, the previous result
     # still applies and the transaction is *not* rolled back.
-    # 
+    #
     # To turn off transactions:
-    # 
+    #
     #   class Vehicle < ActiveRecord::Base
     #     state_machine :initial => :parked, :use_transactions => false do
     #       ...
     #     end
     #   end
-    # 
+    #
     # == Validations
-    # 
+    #
     # As mentioned in StateMachines::Machine#state, you can define behaviors,
     # like validations, that only execute for certain states. One *important*
     # caveat here is that, due to a constraint in ActiveRecord's validation
     # framework, custom validators will not work as expected when defined to run
     # in multiple states.  For example:
-    # 
+    #
     #   class Vehicle < ActiveRecord::Base
     #     state_machine do
     #       ...
@@ -158,11 +158,11 @@ module StateMachines
     #       end
     #     end
     #   end
-    # 
+    #
     # In this case, the <tt>:speed_is_legal</tt> validation will only get run
     # for the <tt>:second_gear</tt> state.  To avoid this, you can define your
     # custom validation like so:
-    # 
+    #
     #   class Vehicle < ActiveRecord::Base
     #     state_machine do
     #       ...
@@ -171,124 +171,124 @@ module StateMachines
     #       end
     #     end
     #   end
-    # 
+    #
     # == Validation errors
-    # 
+    #
     # If an event fails to successfully fire because there are no matching
     # transitions for the current record, a validation error is added to the
     # record's state attribute to help in determining why it failed and for
     # reporting via the UI.
-    # 
+    #
     # For example,
-    # 
+    #
     #   vehicle = Vehicle.create(:state => 'idling')  # => #<Vehicle id: 1, name: nil, state: "idling">
     #   vehicle.ignite                                # => false
     #   vehicle.errors.full_messages                  # => ["State cannot transition via \"ignite\""]
-    # 
+    #
     # If an event fails to fire because of a validation error on the record and
     # *not* because a matching transition was not available, no error messages
     # will be added to the state attribute.
-    # 
+    #
     # In addition, if you're using the <tt>ignite!</tt> version of the event,
     # then the failure reason (such as the current validation errors) will be
     # included in the exception that gets raised when the event fails.  For
     # example, assuming there's a validation on a field called +name+ on the class:
-    # 
+    #
     #   vehicle = Vehicle.new
     #   vehicle.ignite!       # => StateMachines::InvalidTransition: Cannot transition state via :ignite from :parked (Reason(s): Name cannot be blank)
-    # 
+    #
     # == Scopes
-    # 
+    #
     # To assist in filtering models with specific states, a series of named
     # scopes are defined on the model for finding records with or without a
     # particular set of states.
-    # 
+    #
     # These named scopes are essentially the functional equivalent of the
     # following definitions:
-    # 
+    #
     #   class Vehicle < ActiveRecord::Base
     #     named_scope :with_states, lambda {|*states| {:conditions => {:state => states}}}
     #     # with_states also aliased to with_state
-    #     
+    #
     #     named_scope :without_states, lambda {|*states| {:conditions => ['state NOT IN (?)', states]}}
     #     # without_states also aliased to without_state
     #   end
-    # 
+    #
     # *Note*, however, that the states are converted to their stored values
     # before being passed into the query.
-    # 
+    #
     # Because of the way named scopes work in ActiveRecord, they can be
     # chained like so:
-    # 
+    #
     #   Vehicle.with_state(:parked).all(:order => 'id DESC')
-    # 
+    #
     # Note that states can also be referenced by the string version of their
     # name:
-    # 
+    #
     #   Vehicle.with_state('parked')
-    # 
+    #
     # == Callbacks
-    # 
+    #
     # All before/after transition callbacks defined for ActiveRecord models
     # behave in the same way that other ActiveRecord callbacks behave.  The
     # object involved in the transition is passed in as an argument.
-    # 
+    #
     # For example,
-    # 
+    #
     #   class Vehicle < ActiveRecord::Base
     #     state_machine :initial => :parked do
     #       before_transition any => :idling do |vehicle|
     #         vehicle.put_on_seatbelt
     #       end
-    #       
+    #
     #       before_transition do |vehicle, transition|
     #         # log message
     #       end
-    #       
+    #
     #       event :ignite do
     #         transition :parked => :idling
     #       end
     #     end
-    #     
+    #
     #     def put_on_seatbelt
     #       ...
     #     end
     #   end
-    # 
+    #
     # Note, also, that the transition can be accessed by simply defining
     # additional arguments in the callback block.
-    # 
+    #
     # === Failure callbacks
-    # 
+    #
     # +after_failure+ callbacks allow you to execute behaviors when a transition
     # is allowed, but fails to save.  This could be useful for something like
     # auditing transition attempts.  Since callbacks run within transactions in
     # ActiveRecord, a save failure will cause any records that get created in
     # your callback to roll back.  You can work around this issue like so:
-    # 
+    #
     #   class TransitionLog < ActiveRecord::Base
     #     establish_connection Rails.env.to_sym
     #   end
-    #   
+    #
     #   class Vehicle < ActiveRecord::Base
     #     state_machine do
     #       after_failure do |vehicle, transition|
     #         TransitionLog.create(:vehicle => vehicle, :transition => transition)
     #       end
-    #       
+    #
     #       ...
     #     end
     #   end
-    # 
+    #
     # The +TransitionLog+ model establishes a second connection to the database
     # that allows new records to be saved without being affected by rollbacks
     # in the +Vehicle+ model's transaction.
-    # 
+    #
     # === Callback Order
-    # 
+    #
     # Callbacks occur in the following order.  Callbacks specific to state_machine
     # are bolded.  The remaining callbacks are part of ActiveRecord.
-    # 
+    #
     # * (-) save
     # * (-) begin transaction (if enabled)
     # * (1) *before_transition*
@@ -304,9 +304,9 @@ module StateMachines
     # * (8) *after_transition*
     # * (-) end transaction (if enabled)
     # * (9) after_commit
-    # 
+    #
     # == Observers
-    # 
+    #
     # In addition to support for ActiveRecord-like hooks, there is additional
     # support for ActiveRecord observers.  Because of the way ActiveRecord
     # observers are designed, there is less flexibility around the specific
@@ -323,49 +323,49 @@ module StateMachines
     # * before/after/after_failure_to-_transition_state_to_idling
     # * before/after/after_failure_to-_transition_state
     # * before/after/after_failure_to-_transition
-    # 
+    #
     # The following class shows an example of some of these hooks:
-    # 
+    #
     #   class VehicleObserver < ActiveRecord::Observer
     #     def before_save(vehicle)
     #       # log message
     #     end
-    #     
+    #
     #     # Callback for :ignite event *before* the transition is performed
     #     def before_ignite(vehicle, transition)
     #       # log message
     #     end
-    #     
+    #
     #     # Callback for :ignite event *after* the transition has been performed
     #     def after_ignite(vehicle, transition)
     #       # put on seatbelt
     #     end
-    #     
+    #
     #     # Generic transition callback *before* the transition is performed
     #     def after_transition(vehicle, transition)
     #       Audit.log(vehicle, transition)
     #     end
     #   end
-    # 
+    #
     # More flexible transition callbacks can be defined directly within the
     # model as described in StateMachines::Machine#before_transition
     # and StateMachines::Machine#after_transition.
-    # 
+    #
     # To define a single observer for multiple state machines:
-    # 
+    #
     #   class StateMachineObserver < ActiveRecord::Observer
     #     observe Vehicle, Switch, Project
-    #     
+    #
     #     def after_transition(record, transition)
     #       Audit.log(record, transition)
     #     end
     #   end
-    # 
+    #
     # == Internationalization
-    # 
+    #
     # In Rails 2.2+, any error message that is generated from performing invalid
     # transitions can be localized.  The following default translations are used:
-    # 
+    #
     #   en:
     #     activerecord:
     #       errors:
@@ -375,19 +375,19 @@ module StateMachines
     #           invalid_event: "cannot transition when %{state}"
     #           # %{value} = attribute value, %{event} = Human event name, %{state} = Human current state name
     #           invalid_transition: "cannot transition via %{event}"
-    # 
+    #
     # Notice that the interpolation syntax is %{key} in Rails 3+.  In Rails 2.x,
     # the appropriate syntax is {{key}}.
-    # 
+    #
     # You can override these for a specific model like so:
-    # 
+    #
     #   en:
     #     activerecord:
     #       errors:
     #         models:
     #           user:
     #             invalid: "is not valid"
-    # 
+    #
     # In addition to the above, you can also provide translations for the
     # various states / events in each state machine.  Using the Vehicle example,
     # state translations will be looked for using the following keys, where
@@ -396,16 +396,16 @@ module StateMachines
     # * <tt>activerecord.state_machines.#{model_name}.states.#{state_name}</tt>
     # * <tt>activerecord.state_machines.#{machine_name}.states.#{state_name}</tt>
     # * <tt>activerecord.state_machines.states.#{state_name}</tt>
-    # 
+    #
     # Event translations will be looked for using the following keys, where
     # +model_name+ = "vehicle", +machine_name+ = "state" and +event_name+ = "ignite":
     # * <tt>activerecord.state_machines.#{model_name}.#{machine_name}.events.#{event_name}</tt>
     # * <tt>activerecord.state_machines.#{model_name}.events.#{event_name}</tt>
     # * <tt>activerecord.state_machines.#{machine_name}.events.#{event_name}</tt>
     # * <tt>activerecord.state_machines.events.#{event_name}</tt>
-    # 
+    #
     # An example translation configuration might look like so:
-    # 
+    #
     #   es:
     #     activerecord:
     #       state_machines:
@@ -448,7 +448,16 @@ module StateMachines
       end
 
       def define_state_initializer
-        if ::ActiveRecord.gem_version >= Gem::Version.new('4.2')
+        if ::ActiveRecord.gem_version >= Gem::Version.new('5.0.0.alpha')
+          define_helper :instance, <<-end_eval, __FILE__, __LINE__ + 1
+            def initialize(attributes = nil)
+              super(attributes) do |*args|
+                self.class.state_machines.initialize_states(self, {}, attributes || {})
+                yield(*args) if block_given?
+              end
+            end
+          end_eval
+        elsif ::ActiveRecord.gem_version >= Gem::Version.new('4.2')
           define_helper :instance, <<-end_eval, __FILE__, __LINE__ + 1
             def initialize(attributes = nil, options = {})
               super(attributes, options) do |*args|
@@ -491,12 +500,12 @@ module StateMachines
               def save(*)
                 self.class.state_machine(#{name.inspect}).send(:around_save, self) { super }
               end
-              
+
               def save!(*)
                 result = self.class.state_machine(#{name.inspect}).send(:around_save, self) { super }
                 result || raise(ActiveRecord::RecordInvalid.new(self))
               end
-              
+
               def changed_for_autosave?
                 super || self.class.state_machines.any? {|name, machine| machine.action == :save && machine.read(self, :event)}
               end
