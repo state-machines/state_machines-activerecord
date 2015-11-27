@@ -24,14 +24,22 @@ module StateMachines
     # 
     # == Actions
     # 
-    # By default, the action that will be invoked when a state is transitioned
-    # is the +save+ action.  This will cause the record to save the changes
+    # To save the record on each state transition, you will need to set the
+    # action to +save+. This will cause the record to save the changes
     # made to the state machine's attribute.  *Note* that if any other changes
     # were made to the record prior to transition, then those changes will
     # be saved as well.
     # 
     # For example,
-    # 
+    #
+    #   class Vehicle < ActiveRecord::Base
+    #     state_machine :initial => :parked, :action => :save do
+    #       event :ignite do
+    #         transition :parked => :idling
+    #       end
+    #     end
+    #   end
+    #
     #   vehicle = Vehicle.create          # => #<Vehicle id: 1, name: nil, state: "parked">
     #   vehicle.name = 'Ford Explorer'
     #   vehicle.ignite                    # => true
