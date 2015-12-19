@@ -8,7 +8,7 @@ gem "activerecord", :github => "rails/rails", :branch => "master"
 gem "method_source"
 gem "arel", :github => "rails/arel", :branch => "master"
 gem "activemodel", :github => "rails/rails", :branch => "master"
-gem "state_machines-activemodel", :github => "state-machines/state_machines-activemodel"
+gem "state_machines-activemodel", "0.4.0.pre"
 
 platforms :mri_20, :mri_21 do
   gem "pry-byebug"
