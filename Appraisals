@@ -17,5 +17,5 @@ appraise "active_record_edge" do
   gem "method_source"  # appears to be a missing dependency of activerecord
   gem "arel", github: 'rails/arel', branch: 'master'
   gem "activemodel", github: 'rails/rails', branch: 'master'
-  gem "state_machines-activemodel", github: 'state-machines/state_machines-activemodel'
+  gem "state_machines-activemodel", '0.4.0.pre'
 end
