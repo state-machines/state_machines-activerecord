@@ -69,7 +69,7 @@ class MachineWithEventAttributesOnSaveTest < BaseTestCase
   end
 
   def test_should_not_run_after_callbacks_with_failures_disabled_if_fails
-    @model.before_create { |record| false }
+    @model.before_create { |record| abort_from_callback }
 
     ran_callback = false
     @machine.after_transition { ran_callback = true }
@@ -82,7 +82,7 @@ class MachineWithEventAttributesOnSaveTest < BaseTestCase
   end
 
   def test_should_run_failure_callbacks__if_fails
-    @model.before_create { |record| false }
+    @model.before_create { |record| abort_from_callback }
 
     ran_callback = false
     @machine.after_failure { ran_callback = true }
@@ -95,7 +95,7 @@ class MachineWithEventAttributesOnSaveTest < BaseTestCase
   end
 
   def test_should_not_run_around_callbacks_if_fails
-    @model.before_create { |record| false }
+    @model.before_create { |record| abort_from_callback }
 
     ran_callback = false
     @machine.around_transition { |block| block.call; ran_callback = true }

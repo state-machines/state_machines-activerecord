@@ -28,6 +28,14 @@ class BaseTestCase < ActiveSupport::TestCase
       self.table_name = table_name.to_s
       connection.create_table(table_name, :force => true) { |t| t.string(:state) } if create_table
 
+      define_method(:abort_from_callback) do
+        if ActiveSupport.gem_version >= Gem::Version.new('5.0')
+          throw :abort
+        else
+          false
+        end
+      end
+
       (
       class << self;
         self;
