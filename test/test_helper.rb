@@ -14,7 +14,9 @@ ActiveRecord::Base.logger = Logger.new("#{File.dirname(__FILE__)}/../log/active_
 
 if ActiveSupport.gem_version >= Gem::Version.new('4.2.0')
   ActiveSupport.test_order = :random
-  ActiveRecord::Base.raise_in_transactional_callbacks = true
+  if ActiveSupport.gem_version < Gem::Version.new('5.1.x')
+    ActiveRecord::Base.raise_in_transactional_callbacks = true
+  end
 end
 
 class BaseTestCase < ActiveSupport::TestCase
