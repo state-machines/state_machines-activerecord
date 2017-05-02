@@ -1,25 +1,6 @@
-appraise "active_record_4.1" do
- gem "sqlite3", platforms: [:mri, :rbx]
- gem "activerecord-jdbcsqlite3-adapter", platform: :jruby
- gem "activerecord", github: 'rails/rails',  branch: '4-1-stable'
-end
-
-appraise "active_record_4.2" do
+# Only appraising legacy Rails that are no longer supported by the standard gem.
+appraise "active_record_4.0" do
   gem "sqlite3", platforms: [:mri, :rbx]
   gem "activerecord-jdbcsqlite3-adapter", platform: :jruby
-  gem "activerecord", github: 'rails/rails',  branch: '4-2-stable'
-end
-
-appraise "active_record_5.0" do
-  gem "sqlite3", platforms: [:mri, :rbx]
-  gem "activerecord-jdbcsqlite3-adapter", platform: :jruby
-  gem "activerecord", github: 'rails/rails',  branch: '5-0-stable'
-  gem "activemodel", github: 'rails/rails', branch: '5-0-stable'
-end
-
-appraise "active_record_edge" do
-  gem "sqlite3", platforms: [:mri, :rbx]
-  gem "activerecord-jdbcsqlite3-adapter", platform: :jruby
-  gem "activerecord", github: 'rails/rails',  branch: 'master'
-  gem "activemodel", github: 'rails/rails', branch: 'master'
+  gem "activerecord", "~> 4.0"
 end
