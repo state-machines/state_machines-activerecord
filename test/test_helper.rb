@@ -14,7 +14,9 @@ ActiveRecord::Base.logger = Logger.new("#{File.dirname(__FILE__)}/../log/active_
 
 if ActiveSupport.gem_version >= Gem::Version.new('4.2.0')
   ActiveSupport.test_order = :random
-  ActiveRecord::Base.raise_in_transactional_callbacks = true
+  if ActiveSupport.gem_version < Gem::Version.new('5.1.x')
+    ActiveRecord::Base.raise_in_transactional_callbacks = true
+  end
 end
 
 class BaseTestCase < ActiveSupport::TestCase
@@ -27,6 +29,14 @@ class BaseTestCase < ActiveSupport::TestCase
     model = Class.new(ActiveRecord::Base) do
       self.table_name = table_name.to_s
       connection.create_table(table_name, :force => true) { |t| t.string(:state) } if create_table
+
+      define_method(:abort_from_callback) do
+        if ActiveSupport.gem_version >= Gem::Version.new('5.0')
+          throw :abort
+        else
+          false
+        end
+      end
 
       (
       class << self;
