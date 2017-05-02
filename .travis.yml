@@ -34,6 +34,9 @@ matrix:
       rvm: 2.3.4
     - gemfile: gemfiles/active_record_edge.gemfile
       rvm: 2.4.1
+  exclude:
+    - gemfile: gemfiles/active_record_4.1.gemfile
+      rvm: 2.4.1
   allow_failures:
     - rvm: jruby
     - rvm: rbx-2
