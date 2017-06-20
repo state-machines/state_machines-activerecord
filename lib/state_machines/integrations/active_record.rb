@@ -423,7 +423,7 @@ module StateMachines
         # Classes that inherit from ActiveRecord::Base will automatically use
         # the ActiveRecord integration.
         def matching_ancestors
-          %w(ActiveRecord::Base)
+          [::ActiveRecord::Base]
         end
 
         def locale_path
