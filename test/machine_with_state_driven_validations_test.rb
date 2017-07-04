@@ -4,11 +4,14 @@ class MachineWithStateDrivenValidationsTest < BaseTestCase
   def setup
     @model = new_model do
       attr_accessor :seatbelt
+      def presence_of_seatbelt
+        errors.add :seatbelt, "Seatbelt is missing" unless seatbelt.present?
+      end
     end
 
     @machine = StateMachines::Machine.new(@model)
     @machine.state :first_gear, :second_gear do
-      validates_presence_of :seatbelt
+      validate :presence_of_seatbelt
     end
     @machine.other_states :parked
   end
@@ -21,6 +24,11 @@ class MachineWithStateDrivenValidationsTest < BaseTestCase
   def test_should_be_invalid_if_validation_fails_within_state_scope
     record = @model.new(:state => 'first_gear', :seatbelt => nil)
     refute record.valid?
+  end
+
+  def test_should_be_valid_if_validation_succeeds_within_state_scope
+    record = @model.new(:state => 'first_gear', :seatbelt => true)
+    assert record.valid?
   end
 
   def test_should_be_valid_if_validation_succeeds_within_state_scope
