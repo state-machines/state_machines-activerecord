@@ -64,6 +64,38 @@ Vehicle.with_state(:parked)                         # also plural #with_states
 Vehicle.without_states(:first_gear, :second_gear)   # also singular #without_state
 ```
 
+### State driven validations
+
+As mentioned in `StateMachines::Machine#state`, you can define behaviors,
+like validations, that only execute for certain states. One *important*
+caveat here is that, due to a constraint in ActiveRecord's validation
+framework, custom validators will not work as expected when defined to run
+in multiple states. For example:
+
+~~~
+class Vehicle < ActiveRecord::Base
+  state_machine do
+    state :first_gear, :second_gear do
+      validate :speed_is_legal
+    end
+  end
+end
+~~~
+
+In this case, the <tt>:speed_is_legal</tt> validation will only get run
+for the <tt>:second_gear</tt> state.  To avoid this, you can define your
+custom validation like so:
+
+~~~
+  class Vehicle < ActiveRecord::Base
+    state_machine do
+      state :first_gear, :second_gear do
+        validate {|vehicle| vehicle.speed_is_legal}
+      end
+    end
+  end
+~~~
+
 ## Contributing
 
 1. Fork it ( https://github.com/state-machines/state_machines-activerecord/fork )
