@@ -439,10 +439,18 @@ module StateMachines
       end
 
       # Gets the db default for the machine's attribute
-      def owner_class_attribute_default
-        if owner_class.connected? && owner_class.table_exists?
-          if column = owner_class.columns_hash[attribute.to_s]
-            column.default
+      if ::ActiveRecord.gem_version >= Gem::Version.new('4.2.0')
+        def owner_class_attribute_default
+          if owner_class.connected? && owner_class.table_exists?
+            owner_class.column_defaults[attribute.to_s]
+          end
+        end
+      else
+        def owner_class_attribute_default
+          if owner_class.connected? && owner_class.table_exists?
+            if column = owner_class.columns_hash[attribute.to_s]
+              column.default
+            end
           end
         end
       end
