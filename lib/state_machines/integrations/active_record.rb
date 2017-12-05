@@ -458,7 +458,13 @@ module StateMachines
 
       # Defines a new scope with the given name
       def create_scope(_name, scope)
-        ->(model, values) { model.where(scope.call(values)) }
+        ->(model, values) { values.present? ? model.where(scope.call(values)) : model.all }
+      end
+
+      # Generates the results for the given scope based on one or more states to filter by
+      def run_scope(scope, machine, klass, states)
+        values = states.flatten.compact.map { |state| machine.states.fetch(state).value }
+        scope.call(klass, values)
       end
 
       # ActiveModel's use of method_missing / respond_to for attribute methods
