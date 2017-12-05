@@ -565,7 +565,7 @@ module StateMachines
 
         # Defines a new named scope with the given name
         def create_scope(name, scope)
-          lambda { |model, values| model.where(scope.call(values)) }
+          lambda { |model, values| model.where(scope.call(values)) if values.present? }
         end
 
         # ActiveModel's use of method_missing / respond_to for attribute methods
