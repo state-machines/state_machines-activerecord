@@ -458,7 +458,7 @@ module StateMachines
       def define_state_initializer
         if ::ActiveRecord.gem_version >= Gem::Version.new('5.0.0.alpha')
           define_helper :instance, <<-end_eval, __FILE__, __LINE__ + 1
-            def initialize(attributes = nil)
+            def initialize(attributes = nil, *)
               super(attributes) do |*args|
                 self.class.state_machines.initialize_states(self, {}, attributes || {})
                 yield(*args) if block_given?
