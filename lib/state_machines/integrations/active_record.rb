@@ -565,7 +565,7 @@ module StateMachines
 
         # Defines a new named scope with the given name
         def create_scope(name, scope)
-          ->(model, values) { values.present? ? model.where(scope.call(values)) : model }
+          ->(model, values) { values.present? ? model.where(scope.call(values)) : model.all }
         end
 
         # Generates the results for the given scope based on one or more states to filter by

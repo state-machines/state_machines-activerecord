@@ -2,10 +2,19 @@ require_relative 'test_helper'
 
 class MachineWithScopesTest < BaseTestCase
   def setup
-    @model = new_model
+    @model = new_model do
+      connection.add_column table_name, :name, :string
+    end
     @machine = StateMachines::Machine.new(@model)
     @machine.state :parked, :first_gear
     @machine.state :idling, :value => -> { 'idling' }
+  end
+
+  def test_should_allow_chaining_scopes_with_queries
+    named = @model.create :state => 'parked', :name => 'a_name'
+    @model.create :state => 'parked'
+
+    assert_equal [named], @model.where(:name => 'a_name').with_state(:parked)
   end
 
   def test_should_create_singular_with_scope
