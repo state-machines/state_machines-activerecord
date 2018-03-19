@@ -42,10 +42,6 @@ matrix:
     - gemfile: gemfiles/active_record_5.2.gemfile
       rvm: 2.5.0
     - gemfile: gemfiles/active_record_edge.gemfile
-      rvm: 2.2.9
-    - gemfile: gemfiles/active_record_edge.gemfile
-      rvm: 2.3.6
-    - gemfile: gemfiles/active_record_edge.gemfile
       rvm: 2.4.3
     - gemfile: gemfiles/active_record_edge.gemfile
       rvm: 2.5.0
