@@ -6,14 +6,6 @@
 The Active Record 4.1+ integration adds support for database transactions, automatically
 saving the record, named scopes, validation errors.
 
-## Documentation
-
-For the complete documentation, see http://www.rubydoc.info/github/state-machines/state_machines-activerecord/StateMachines/Integrations/ActiveRecord
-
-## Dependencies
-
-Active Record 4.1+
-
 ## Installation
 
 Add this line to your application's Gemfile:
@@ -29,6 +21,10 @@ Or install it yourself as:
     $ gem install state_machines-activerecord
 
 ## Usage
+
+For the complete usage guide, see http://www.rubydoc.info/github/state-machines/state_machines-activerecord/StateMachines/Integrations/ActiveRecord
+
+### Example
 
 ```ruby
 class Vehicle < ActiveRecord::Base
