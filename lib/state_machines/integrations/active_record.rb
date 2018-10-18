@@ -460,7 +460,9 @@ module StateMachines
           define_helper :instance, <<-end_eval, __FILE__, __LINE__ + 1
             def initialize(attributes = nil)
               super(attributes) do |*args|
-                self.class.state_machines.initialize_states(self, {}, attributes || {})
+                scoped_attributes = (attributes || {}).merge(self.class.scope_attributes)
+
+                self.class.state_machines.initialize_states(self, {}, scoped_attributes)
                 yield(*args) if block_given?
               end
             end

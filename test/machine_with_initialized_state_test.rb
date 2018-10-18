@@ -27,6 +27,12 @@ class MachineWithInitializedStateTest < BaseTestCase
     assert_equal 'idling', record.state
   end
 
+  def test_should_allow_different_initial_state_when_using_create_with
+    record = @model.create_with(state: 'idling').new
+
+    assert_equal 'idling', record.state
+  end
+
   def test_should_allow_different_initial_state_when_dynamic
     @machine.initial_state = lambda { :parked }
     record = @model.new(:state => 'idling')
