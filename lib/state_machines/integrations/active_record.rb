@@ -470,8 +470,10 @@ module StateMachines
         elsif ::ActiveRecord.gem_version >= Gem::Version.new('4.2')
           define_helper :instance, <<-end_eval, __FILE__, __LINE__ + 1
             def initialize(attributes = nil, options = {})
+              scoped_attributes = (attributes || {}).merge(self.class.scope_attributes)
+
               super(attributes, options) do |*args|
-                self.class.state_machines.initialize_states(self, {}, attributes || {})
+                self.class.state_machines.initialize_states(self, {}, scoped_attributes)
                 yield(*args) if block_given?
               end
             end
@@ -494,8 +496,10 @@ module StateMachines
           # Initializes dynamic states
           define_helper :instance, <<-end_eval, __FILE__, __LINE__ + 1
             def initialize(attributes = nil, options = {})
+              scoped_attributes = (attributes || {}).merge(self.class.scope_attributes)
+
               super(attributes, options) do |*args|
-                self.class.state_machines.initialize_states(self, {}, attributes || {})
+                self.class.state_machines.initialize_states(self, {}, scoped_attributes)
                 yield(*args) if block_given?
               end
             end
