@@ -458,7 +458,8 @@ module StateMachines
       def define_state_initializer
         if ::ActiveRecord.gem_version >= Gem::Version.new('5.0.0.alpha')
           define_helper :instance, <<-end_eval, __FILE__, __LINE__ + 1
-            def initialize(attributes = nil)
+            def initialize(*args, &block)
+              attributes = args.first
               super(attributes) do |*args|
                 scoped_attributes = (attributes || {}).merge(self.class.scope_attributes)
 
