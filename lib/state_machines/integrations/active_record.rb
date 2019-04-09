@@ -425,10 +425,6 @@ module StateMachines
         def matching_ancestors
           [::ActiveRecord::Base]
         end
-
-        def locale_path
-          "#{File.dirname(__FILE__)}/active_record/locale.rb"
-        end
       end
 
       protected

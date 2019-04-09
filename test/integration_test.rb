@@ -22,8 +22,4 @@ class IntegrationTest < BaseTestCase
   def test_should_have_defaults
     assert_equal({action: :save, use_transactions: true}, StateMachines::Integrations::ActiveRecord.defaults)
   end
-
-  def test_should_have_a_locale_path
-    assert_not_nil StateMachines::Integrations::ActiveRecord.locale_path
-  end
 end
