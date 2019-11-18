@@ -1,12 +1,13 @@
 language: ruby
-sudo: false
 cache: bundler
 
 rvm:
   - 2.1
-  - 2.2.7
-  - 2.3.4
-  - 2.4.1
+  - 2.2.9
+  - 2.3.8
+  - 2.4.6
+  - 2.5.5
+  - 2.6.2
   - jruby
   - rbx-2
 
@@ -17,32 +18,54 @@ gemfile:
 matrix:
   include:
     - gemfile: gemfiles/active_record_5.0.gemfile
-      rvm: 2.2.7
+      rvm: 2.2.9
     - gemfile: gemfiles/active_record_5.0.gemfile
-      rvm: 2.3.4
+      rvm: 2.3.8
     - gemfile: gemfiles/active_record_5.0.gemfile
-      rvm: 2.4.1
+      rvm: 2.4.6
+    - gemfile: gemfiles/active_record_5.0.gemfile
+      rvm: 2.5.5
+    - gemfile: gemfiles/active_record_5.0.gemfile
+      rvm: 2.6.2
     - gemfile: gemfiles/active_record_5.1.gemfile
-      rvm: 2.2.7
+      rvm: 2.2.9
     - gemfile: gemfiles/active_record_5.1.gemfile
-      rvm: 2.3.4
+      rvm: 2.3.8
     - gemfile: gemfiles/active_record_5.1.gemfile
-      rvm: 2.4.1
+      rvm: 2.4.6
+    - gemfile: gemfiles/active_record_5.1.gemfile
+      rvm: 2.5.5
+    - gemfile: gemfiles/active_record_5.1.gemfile
+      rvm: 2.6.2
+    - gemfile: gemfiles/active_record_5.2.gemfile
+      rvm: 2.2.9
+    - gemfile: gemfiles/active_record_5.2.gemfile
+      rvm: 2.3.8
+    - gemfile: gemfiles/active_record_5.2.gemfile
+      rvm: 2.4.6
+    - gemfile: gemfiles/active_record_5.2.gemfile
+      rvm: 2.5.5
+    - gemfile: gemfiles/active_record_5.2.gemfile
+      rvm: 2.6.2
+    - gemfile: gemfiles/active_record_6.0.gemfile
+      rvm: 2.5.5
+    - gemfile: gemfiles/active_record_6.0.gemfile
+      rvm: 2.6.2
     - gemfile: gemfiles/active_record_edge.gemfile
-      rvm: 2.2.7
+      rvm: 2.5.5
     - gemfile: gemfiles/active_record_edge.gemfile
-      rvm: 2.3.4
-    - gemfile: gemfiles/active_record_edge.gemfile
-      rvm: 2.4.1
+      rvm: 2.6.2
   exclude:
     - gemfile: gemfiles/active_record_4.1.gemfile
-      rvm: 2.4.1
+      rvm: 2.4.6
+    - gemfile: gemfiles/active_record_4.1.gemfile
+      rvm: 2.5.5
+    - gemfile: gemfiles/active_record_4.1.gemfile
+      rvm: 2.6.2
   allow_failures:
     - rvm: jruby
     - rvm: rbx-2
     - gemfile: gemfiles/active_record_edge.gemfile
-      rvm: 2.2.7
+      rvm: 2.5.5
     - gemfile: gemfiles/active_record_edge.gemfile
-      rvm: 2.3.4
-    - gemfile: gemfiles/active_record_edge.gemfile
-      rvm: 2.4.1
+      rvm: 2.6.2

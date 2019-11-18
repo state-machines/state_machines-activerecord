@@ -6,10 +6,6 @@
 The Active Record 4.1+ integration adds support for database transactions, automatically
 saving the record, named scopes, validation errors.
 
-## Dependencies
-
-Active Record 4.1+
-
 ## Installation
 
 Add this line to your application's Gemfile:
@@ -25,6 +21,10 @@ Or install it yourself as:
     $ gem install state_machines-activerecord
 
 ## Usage
+
+For the complete usage guide, see http://www.rubydoc.info/github/state-machines/state_machines-activerecord/StateMachines/Integrations/ActiveRecord
+
+### Example
 
 ```ruby
 class Vehicle < ActiveRecord::Base
@@ -72,7 +72,7 @@ caveat here is that, due to a constraint in ActiveRecord's validation
 framework, custom validators will not work as expected when defined to run
 in multiple states. For example:
 
-~~~
+```ruby
 class Vehicle < ActiveRecord::Base
   state_machine do
     state :first_gear, :second_gear do
@@ -80,21 +80,21 @@ class Vehicle < ActiveRecord::Base
     end
   end
 end
-~~~
+```
 
 In this case, the <tt>:speed_is_legal</tt> validation will only get run
 for the <tt>:second_gear</tt> state.  To avoid this, you can define your
 custom validation like so:
 
-~~~
-  class Vehicle < ActiveRecord::Base
-    state_machine do
-      state :first_gear, :second_gear do
-        validate {|vehicle| vehicle.speed_is_legal}
-      end
+```ruby
+class Vehicle < ActiveRecord::Base
+  state_machine do
+    state :first_gear, :second_gear do
+      validate {|vehicle| vehicle.speed_is_legal}
     end
   end
-~~~
+end
+```
 
 ## Contributing
 
