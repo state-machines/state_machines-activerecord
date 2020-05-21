@@ -20,7 +20,7 @@ class MachineWithScopesAndOwnerSubclassTest < BaseTestCase
   def test_should_only_include_records_without_subclass_states_in_without_scope
     parked = @subclass.create :state => 'parked'
     idling = @subclass.create :state => 'idling'
-    first_gear = @subclass.create :state => 'first_gear'
+    @subclass.create :state => 'first_gear'
 
     assert_equal [parked, idling], @subclass.without_states(:first_gear).all
   end

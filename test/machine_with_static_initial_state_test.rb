@@ -114,7 +114,7 @@ class MachineWithStaticInitialStateTest < BaseTestCase
     MachineWithStaticInitialStateTest.const_set('Owner', owner_model)
 
     owner = owner_model.create
-    record = @model.create(:state => 'idling', :owner_id => owner.id)
+    @model.create(:state => 'idling', :owner_id => owner.id)
     assert_equal 'idling', owner.vehicles[0].state
   end
 
@@ -131,7 +131,7 @@ class MachineWithStaticInitialStateTest < BaseTestCase
     MachineWithStaticInitialStateTest.const_set('Owner', owner_model)
 
     owner = owner_model.create
-    record = @model.create(:state => 'idling', :owner_id => owner.id)
+    @model.create(:state => 'idling', :owner_id => owner.id)
     assert_equal 'idling', owner.vehicle.state
   end
 
