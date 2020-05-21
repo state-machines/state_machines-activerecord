@@ -2,12 +2,12 @@ language: ruby
 cache: bundler
 
 rvm:
-  - 2.1
   - 2.2.9
   - 2.3.8
   - 2.4.6
   - 2.5.5
   - 2.6.2
+  - '2.7'
   - jruby
   - rbx-2
 
@@ -51,10 +51,14 @@ matrix:
       rvm: 2.5.5
     - gemfile: gemfiles/active_record_6.0.gemfile
       rvm: 2.6.2
+    - gemfile: gemfiles/active_record_6.0.gemfile
+      rvm: '2.7'
     - gemfile: gemfiles/active_record_edge.gemfile
       rvm: 2.5.5
     - gemfile: gemfiles/active_record_edge.gemfile
       rvm: 2.6.2
+    - gemfile: gemfiles/active_record_edge.gemfile
+      rvm: '2.7'
   exclude:
     - gemfile: gemfiles/active_record_4.1.gemfile
       rvm: 2.4.6
@@ -62,6 +66,14 @@ matrix:
       rvm: 2.5.5
     - gemfile: gemfiles/active_record_4.1.gemfile
       rvm: 2.6.2
+    - gemfile: gemfiles/active_record_4.1.gemfile
+      rvm: '2.7'
+    - gemfile: gemfiles/active_record_4.2.gemfile
+      rvm: '2.7'
+    - gemfile: gemfiles/active_record_5.0.gemfile
+      rvm: '2.7'
+    - gemfile: gemfiles/active_record_5.1.gemfile
+      rvm: '2.7'
   allow_failures:
     - rvm: jruby
     - rvm: rbx-2

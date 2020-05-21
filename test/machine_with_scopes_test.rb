@@ -43,7 +43,7 @@ class MachineWithScopesTest < BaseTestCase
 
   def test_should_only_include_records_without_state_in_singular_without_scope
     parked = @model.create :state => 'parked'
-    idling = @model.create :state => 'idling'
+    @model.create :state => 'idling'
 
     assert_equal [parked], @model.without_state(:idling).all
   end
@@ -55,13 +55,13 @@ class MachineWithScopesTest < BaseTestCase
   def test_should_only_include_records_without_states_in_plural_without_scope
     parked = @model.create :state => 'parked'
     idling = @model.create :state => 'idling'
-    first_gear = @model.create :state => 'first_gear'
+    @model.create :state => 'first_gear'
 
     assert_equal [parked, idling], @model.without_states(:first_gear).all
   end
 
   def test_should_allow_chaining_scopes
-    parked = @model.create :state => 'parked'
+    @model.create :state => 'parked'
     idling = @model.create :state => 'idling'
 
     assert_equal [idling], @model.without_state(:parked).with_state(:idling).all
