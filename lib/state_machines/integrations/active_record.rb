@@ -507,11 +507,11 @@ module StateMachines
       def define_action_hook
         if action_hook == :save
           define_helper :instance, <<-end_eval, __FILE__, __LINE__ + 1
-              def save(*)
+              def save(*, **)
                 self.class.state_machine(#{name.inspect}).send(:around_save, self) { super }
               end
 
-              def save!(*)
+              def save!(*, **)
                 result = self.class.state_machine(#{name.inspect}).send(:around_save, self) { super }
                 result || raise(ActiveRecord::RecordInvalid.new(self))
               end
