@@ -15,10 +15,11 @@ Gem::Specification.new do |spec|
 
   spec.files         = `git ls-files -z`.split("\x0")
   spec.test_files    = spec.files.grep(/^test\//)
+  spec.required_ruby_version     = '>= 2.2.2'
   spec.require_paths = ['lib']
 
-  spec.add_dependency 'state_machines-activemodel', '>= 0.5.0'
-  spec.add_dependency 'activerecord' , '>= 4.1'
+  spec.add_dependency 'state_machines-activemodel', '>= 0.8.0'
+  spec.add_dependency 'activerecord' , '>= 5.1'
   spec.add_development_dependency 'rake', '~> 13.0'
   spec.add_development_dependency 'sqlite3', '~> 1.3'
   spec.add_development_dependency 'appraisal', '>= 1'

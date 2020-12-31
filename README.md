@@ -1,9 +1,9 @@
-[![Build Status](https://travis-ci.org/state-machines/state_machines-activerecord.svg?branch=master)](https://travis-ci.org/state-machines/state_machines-activerecord)
+[![Build Status](https://travis-ci.com/state-machines/state_machines-activerecord.svg?branch=master)](https://travis-ci.com/state-machines/state_machines-activerecord)
 [![Code Climate](https://codeclimate.com/github/state-machines/state_machines-activerecord.svg)](https://codeclimate.com/github/state-machines/state_machines-activerecord)
 
 # StateMachines Active Record Integration
 
-The Active Record 4.1+ integration adds support for database transactions, automatically
+The Active Record 5.1+ integration adds support for database transactions, automatically
 saving the record, named scopes, validation errors.
 
 ## Installation
