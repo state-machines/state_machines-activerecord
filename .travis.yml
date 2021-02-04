@@ -6,6 +6,7 @@ rvm:
   - 2.6.6
   - 2.7.2
   - jruby
+  - truffleruby-head
 
 gemfile:
   - gemfiles/active_record_5.1.gemfile
