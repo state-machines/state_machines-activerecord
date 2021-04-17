@@ -19,11 +19,5 @@ class MachineWithAliasedAttributeTest < BaseTestCase
     @record.vehicle_status = 'parked'
     assert @record.status?(:parked)
   end
-
-  def test_should_initialize_with_original_attribute_names
-    record = @model.new(:vehicle_status => 'bogus')
-    refute record.status?(:parked)
-    assert record.status?(:bogus)
-  end
 end
 
