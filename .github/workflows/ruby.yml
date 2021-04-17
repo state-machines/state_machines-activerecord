@@ -15,21 +15,33 @@ on:
 
 jobs:
   test:
-
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        ruby-version: ['2.6', '2.7', '3.0']
-
+         ruby-version: ['2.6', '2.7', '3.0', 'jruby']
+         gemfiles:
+          - gemfiles/active_record_5.1.gemfile
+          - gemfiles/active_record_5.2.gemfile
+          - gemfiles/active_record_6.0.gemfile
+          - gemfiles/active_record_6.1.gemfile
+          - gemfiles/active_record_edge.gemfile
+         exclude:
+           - ruby-version: '3.0'
+             gemfiles: gemfiles/active_record_5.1.gemfile
+           - ruby-version: '3.0'
+             gemfiles: gemfiles/active_record_5.2.gemfile
+           - ruby-version: '2.6'
+             gemfiles: gemfiles/active_record_edge.gemfile
+           - ruby-version: 'jruby'
+             gemfiles: gemfiles/active_record_edge.gemfile
+    env:
+      BUNDLE_GEMFILE:  ${{ matrix.gemfiles }}
     steps:
     - uses: actions/checkout@v2
     - name: Set up Ruby
-    # To automatically get bug fixes and new Ruby versions for ruby/setup-ruby,
-    # change this to (see https://github.com/ruby/setup-ruby#versioning):
-    # uses: ruby/setup-ruby@v1
-      uses: ruby/setup-ruby@473e4d8fe5dd94ee328fdfca9f8c9c7afc9dae5e
+      uses: ruby/setup-ruby@v1
       with:
         ruby-version: ${{ matrix.ruby-version }}
-        bundler-cache: true # runs 'bundle install' and caches installed gems automatically
-    - name: Run tests
+        bundler-cache: true
+    - name: Run Tests
       run: bundle exec rake

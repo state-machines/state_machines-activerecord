@@ -3,9 +3,8 @@
 source "https://rubygems.org"
 
 gem "sqlite3", platforms: [:mri, :rbx]
-gem "activerecord-jdbcsqlite3-adapter", platform: :jruby
-gem "activerecord", github: "rails/rails", branch: "6-0-stable"
-gem "activemodel", github: "rails/rails", branch: "6-0-stable"
+gem "activerecord-jdbcsqlite3-adapter", platform: [:jruby, :truffleruby]
+gem "activerecord", "~> 6.0.3"
 
 platforms :mri do
   gem "pry-byebug"
