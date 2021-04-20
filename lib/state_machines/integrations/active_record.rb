@@ -435,72 +435,23 @@ module StateMachines
       end
 
       # Gets the db default for the machine's attribute
-      if ::ActiveRecord.gem_version >= Gem::Version.new('4.2.0')
-        def owner_class_attribute_default
-          if owner_class.connected? && owner_class.table_exists?
-            owner_class.column_defaults[attribute.to_s]
-          end
-        end
-      else
-        def owner_class_attribute_default
-          if owner_class.connected? && owner_class.table_exists?
-            if column = owner_class.columns_hash[attribute.to_s]
-              column.default
-            end
-          end
+      def owner_class_attribute_default
+        if owner_class.connected? && owner_class.table_exists?
+          owner_class.column_defaults[attribute.to_s]
         end
       end
 
       def define_state_initializer
-        if ::ActiveRecord.gem_version >= Gem::Version.new('5.0.0.alpha')
-          define_helper :instance, <<-end_eval, __FILE__, __LINE__ + 1
-            def initialize(attributes = nil, *)
-              super(attributes) do |*args|
-                scoped_attributes = (attributes || {}).merge(self.class.scope_attributes)
-
-                self.class.state_machines.initialize_states(self, {}, scoped_attributes)
-                yield(*args) if block_given?
-              end
-            end
-          end_eval
-        elsif ::ActiveRecord.gem_version >= Gem::Version.new('4.2')
-          define_helper :instance, <<-end_eval, __FILE__, __LINE__ + 1
-            def initialize(attributes = nil, options = {})
+        define_helper :instance, <<-end_eval, __FILE__, __LINE__ + 1
+          def initialize(attributes = nil, *)
+            super(attributes) do |*args|
               scoped_attributes = (attributes || {}).merge(self.class.scope_attributes)
 
-              super(attributes, options) do |*args|
-                self.class.state_machines.initialize_states(self, {}, scoped_attributes)
-                yield(*args) if block_given?
-              end
+              self.class.state_machines.initialize_states(self, {}, scoped_attributes)
+              yield(*args) if block_given?
             end
-          end_eval
-        else
-          # Initializes static states
-          #
-          # This is the only available hook where the default set of attributes
-          # can be overridden for a new object *prior* to the processing of the
-          # attributes passed into #initialize
-          define_helper :class, <<-end_eval, __FILE__, __LINE__ + 1
-            def column_defaults(*) #:nodoc:
-              result = super
-              # No need to pass in an object, since the overrides will be forced
-              self.state_machines.initialize_states(nil, :static => :force, :dynamic => false, :to => result)
-              result
-            end
-          end_eval
-
-          # Initializes dynamic states
-          define_helper :instance, <<-end_eval, __FILE__, __LINE__ + 1
-            def initialize(attributes = nil, options = {})
-              scoped_attributes = (attributes || {}).merge(self.class.scope_attributes)
-
-              super(attributes, options) do |*args|
-                self.class.state_machines.initialize_states(self, {}, scoped_attributes)
-                yield(*args) if block_given?
-              end
-            end
-          end_eval
-        end
+          end
+        end_eval
       end
 
       # Uses around callbacks to run state events if using the :save hook
