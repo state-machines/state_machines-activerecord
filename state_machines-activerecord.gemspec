@@ -18,7 +18,7 @@ Gem::Specification.new do |spec|
   spec.require_paths = ['lib']
 
   spec.add_dependency 'state_machines-activemodel', '>= 0.5.0'
-  spec.add_dependency 'activerecord' , ['>= 4.1', '< 6.0']
+  spec.add_dependency 'activerecord' , ['>= 4.1', '< 6.2']
   spec.add_development_dependency 'rake', '~> 10.3'
   spec.add_development_dependency 'sqlite3', '~> 1.3'
   spec.add_development_dependency 'appraisal', '>= 1'
