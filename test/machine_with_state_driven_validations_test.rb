@@ -8,7 +8,7 @@ class MachineWithStateDrivenValidationsTest < BaseTestCase
 
     @machine = StateMachines::Machine.new(@model)
     @machine.state :first_gear, :second_gear do
-      validates_presence_of :seatbelt
+      validates :seatbelt, presence: true
     end
     @machine.other_states :parked
   end

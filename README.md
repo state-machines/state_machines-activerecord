@@ -40,7 +40,7 @@ class Vehicle < ApplicationRecord
     end
 
     state :first_gear, :second_gear do
-      validates_presence_of :seatbelt_on
+      validates :seatbelt_on, presence: true
     end
   end
 
