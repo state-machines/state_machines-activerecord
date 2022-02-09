@@ -11,7 +11,7 @@ module StateMachines
     # Below is an example of a simple state machine defined within an
     # ActiveRecord model:
     #
-    #   class Vehicle < ActiveRecord::Base
+    #   class Vehicle < ApplicationRecord
     #     state_machine :initial => :parked do
     #       event :ignite do
     #         transition :parked => :idling
@@ -82,7 +82,7 @@ module StateMachines
     # users from tampering with events through URLs / forms, the attribute
     # should be protected like so:
     #
-    #   class Vehicle < ActiveRecord::Base
+    #   class Vehicle < ApplicationRecord
     #     attr_protected :state_event
     #     # attr_accessible ... # Alternative technique
     #
@@ -94,7 +94,7 @@ module StateMachines
     # If you want to only have *some* events be able to fire via mass-assignment,
     # you can build two state machines (one public and one protected) like so:
     #
-    #   class Vehicle < ActiveRecord::Base
+    #   class Vehicle < ApplicationRecord
     #     attr_protected :state_event # Prevent access to events in the first machine
     #
     #     state_machine do
@@ -115,7 +115,7 @@ module StateMachines
     #
     # For example,
     #
-    #   class Message < ActiveRecord::Base
+    #   class Message < ApplicationRecord
     #   end
     #
     #   Vehicle.state_machine do
@@ -136,7 +136,7 @@ module StateMachines
     #
     # To turn off transactions:
     #
-    #   class Vehicle < ActiveRecord::Base
+    #   class Vehicle < ApplicationRecord
     #     state_machine :initial => :parked, :use_transactions => false do
     #       ...
     #     end
@@ -150,7 +150,7 @@ module StateMachines
     # framework, custom validators will not work as expected when defined to run
     # in multiple states.  For example:
     #
-    #   class Vehicle < ActiveRecord::Base
+    #   class Vehicle < ApplicationRecord
     #     state_machine do
     #       ...
     #       state :first_gear, :second_gear do
@@ -163,7 +163,7 @@ module StateMachines
     # for the <tt>:second_gear</tt> state.  To avoid this, you can define your
     # custom validation like so:
     #
-    #   class Vehicle < ActiveRecord::Base
+    #   class Vehicle < ApplicationRecord
     #     state_machine do
     #       ...
     #       state :first_gear, :second_gear do
@@ -206,8 +206,7 @@ module StateMachines
     # These named scopes are essentially the functional equivalent of the
     # following definitions:
     #
-    #   class Vehicle < ActiveRecord::Base
-    #     named_scope :with_states, lambda {|*states| {:conditions => {:state => states}}}
+    #   class Vehicle < ApplicationRecord
     #     # with_states also aliased to with_state
     #
     #     named_scope :without_states, lambda {|*states| {:conditions => ['state NOT IN (?)', states]}}
@@ -235,7 +234,7 @@ module StateMachines
     #
     # For example,
     #
-    #   class Vehicle < ActiveRecord::Base
+    #   class Vehicle < ApplicationRecord
     #     state_machine :initial => :parked do
     #       before_transition any => :idling do |vehicle|
     #         vehicle.put_on_seatbelt
@@ -266,11 +265,11 @@ module StateMachines
     # ActiveRecord, a save failure will cause any records that get created in
     # your callback to roll back.  You can work around this issue like so:
     #
-    #   class TransitionLog < ActiveRecord::Base
+    #   class TransitionLog < ApplicationRecord
     #     establish_connection Rails.env.to_sym
     #   end
     #
-    #   class Vehicle < ActiveRecord::Base
+    #   class Vehicle < ApplicationRecord
     #     state_machine do
     #       after_failure do |vehicle, transition|
     #         TransitionLog.create(:vehicle => vehicle, :transition => transition)
