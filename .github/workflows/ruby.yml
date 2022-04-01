@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-         ruby-version: ['2.6', '2.7', '3.0', 'jruby']
+         ruby-version: ['2.6', '2.7', '3.0', '3.1', 'jruby']
          gemfiles:
           - gemfiles/active_record_5.1.gemfile
           - gemfiles/active_record_5.2.gemfile
