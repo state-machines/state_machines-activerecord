@@ -65,7 +65,7 @@ class MachineWithEventAttributesOnValidationTest < BaseTestCase
   def test_should_not_run_after_callbacks_with_failures_disabled_if_validation_fails
     @model.class_eval do
       attr_accessor :seatbelt
-      validates_presence_of :seatbelt
+      validates :seatbelt, presence: true
     end
 
     ran_callback = false
@@ -78,7 +78,7 @@ class MachineWithEventAttributesOnValidationTest < BaseTestCase
   def test_should_run_after_callbacks_if_validation_fails
     @model.class_eval do
       attr_accessor :seatbelt
-      validates_presence_of :seatbelt
+      validates :seatbelt, presence: true
     end
 
     ran_callback = false
@@ -103,7 +103,7 @@ class MachineWithEventAttributesOnValidationTest < BaseTestCase
   def test_should_not_run_around_callbacks_after_yield_with_failures_disabled_if_validation_fails
     @model.class_eval do
       attr_accessor :seatbelt
-      validates_presence_of :seatbelt
+      validates :seatbelt, presence: true
     end
 
     ran_callback = false
