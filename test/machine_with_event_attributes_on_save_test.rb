@@ -212,13 +212,13 @@ class MachineWithEventAttributesOnSaveTest < BaseTestCase
   def test_should_return_nil_on_around_transition_rollback
     @machine.before_transition { @model.create! }
     @machine.around_transition { @model.create!; raise ActiveRecord::Rollback }
-    assert_equal nil, @record.save
+    assert_nil @record.save
     assert_equal 0, @model.count
   end
 
   def test_should_return_nil_on_before_transition_rollback
     @machine.before_transition { raise ActiveRecord::Rollback }
-    assert_equal nil, @record.save
+    assert_nil @record.save
     assert_equal 0, @model.count
   end
 

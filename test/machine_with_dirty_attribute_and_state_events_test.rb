@@ -15,6 +15,6 @@ class MachineWithDirtyAttributeAndStateEventsTest < BaseTestCase
   end
 
   def test_should_not_track_attribute_change
-    assert_equal nil, @record.changes['state']
+    assert_nil @record.changes['state']
   end
 end
