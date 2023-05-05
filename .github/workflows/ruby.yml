@@ -24,22 +24,27 @@ jobs:
           - gemfiles/active_record_5.2.gemfile
           - gemfiles/active_record_6.0.gemfile
           - gemfiles/active_record_6.1.gemfile
+          - gemfiles/active_record_7.0.gemfile
           - gemfiles/active_record_edge.gemfile
          exclude:
-           - ruby-version: '3.0'
-             gemfiles: gemfiles/active_record_5.1.gemfile
-           - ruby-version: '3.0'
-             gemfiles: gemfiles/active_record_5.2.gemfile
-           - ruby-version: '3.1'
-             gemfiles: gemfiles/active_record_5.1.gemfile
-           - ruby-version: '3.1'
-             gemfiles: gemfiles/active_record_5.2.gemfile
-           - ruby-version: '3.2'
-             gemfiles: gemfiles/active_record_5.1.gemfile
-           - ruby-version: '3.2'
-             gemfiles: gemfiles/active_record_5.2.gemfile
+           - ruby-version: '2.6'
+             gemfiles: gemfiles/active_record_7.0.gemfile
            - ruby-version: '2.6'
              gemfiles: gemfiles/active_record_edge.gemfile
+           - ruby-version: '3.0'
+             gemfiles: gemfiles/active_record_5.1.gemfile
+           - ruby-version: '3.0'
+             gemfiles: gemfiles/active_record_5.2.gemfile
+           - ruby-version: '3.1'
+             gemfiles: gemfiles/active_record_5.1.gemfile
+           - ruby-version: '3.1'
+             gemfiles: gemfiles/active_record_5.2.gemfile
+           - ruby-version: '3.2'
+             gemfiles: gemfiles/active_record_5.1.gemfile
+           - ruby-version: '3.2'
+             gemfiles: gemfiles/active_record_5.2.gemfile
+           - ruby-version: 'jruby'
+             gemfiles: gemfiles/active_record_7.0.gemfile
            - ruby-version: 'jruby'
              gemfiles: gemfiles/active_record_edge.gemfile
     env:
