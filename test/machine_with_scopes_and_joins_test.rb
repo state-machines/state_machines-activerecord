@@ -32,6 +32,7 @@ class MachineWithScopesAndJoinsTest < BaseTestCase
       remove_const('Vehicle')
       remove_const('Company')
     end
-    ActiveSupport::Dependencies.clear
+
+    clear_active_support_dependencies
   end
 end

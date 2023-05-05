@@ -49,4 +49,20 @@ class BaseTestCase < ActiveSupport::TestCase
     model.reset_column_information if create_table
     model
   end
+
+  def clear_active_support_dependencies
+    return unless defined?(ActiveSupport::Dependencies)
+
+    if ActiveSupport::Dependencies.respond_to?(:autoloader=)
+      ActiveSupport::Dependencies.autoloader ||= stubbed_autoloader
+    end
+
+    ActiveSupport::Dependencies.clear
+  end
+
+  def stubbed_autoloader
+    Object.new.tap do |obj|
+      obj.define_singleton_method(:reload) {}
+    end
+  end
 end
