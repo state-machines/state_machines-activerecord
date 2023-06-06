@@ -159,7 +159,8 @@ class MachineWithStaticInitialStateTest < BaseTestCase
       remove_const('Owner') if defined?(MachineWithStaticInitialStateTest::Owner)
       remove_const('Driver') if defined?(MachineWithStaticInitialStateTest::Driver)
     end
-    ActiveSupport::Dependencies.clear
+
+    clear_active_support_dependencies
     super
   end
 end
