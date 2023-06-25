@@ -1,4 +1,4 @@
-name: Ruby
+name: Exotic Ruby
 
 on:
   push:
@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        ruby-version: ['3.0', '3.1', '3.2']
+        ruby-version: ['jruby', 'truffleruby']
         gemfiles:
           - gemfiles/active_record_6.0.gemfile
           - gemfiles/active_record_6.1.gemfile
@@ -28,3 +28,4 @@ jobs:
         bundler-cache: true
     - name: Run tests
       run: bundle exec rake
+      continue-on-error: true

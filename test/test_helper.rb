@@ -11,13 +11,7 @@ require 'securerandom'
 # Establish database connection
 ActiveRecord::Base.establish_connection('adapter' => 'sqlite3', 'database' => ':memory:')
 ActiveRecord::Base.logger = Logger.new("#{File.dirname(__FILE__)}/../log/active_record.log")
-
-if ActiveSupport.gem_version >= Gem::Version.new('4.2.0')
-  ActiveSupport.test_order = :random
-  if ActiveSupport.gem_version < Gem::Version.new('5.1.x')
-    ActiveRecord::Base.raise_in_transactional_callbacks = true
-  end
-end
+ActiveSupport.test_order = :random
 
 class BaseTestCase < ActiveSupport::TestCase
   protected
@@ -31,11 +25,7 @@ class BaseTestCase < ActiveSupport::TestCase
       connection.create_table(table_name, :force => true) { |t| t.string(:state) } if create_table
 
       define_method(:abort_from_callback) do
-        if ActiveSupport.gem_version >= Gem::Version.new('5.0')
-          throw :abort
-        else
-          false
-        end
+        throw :abort
       end
 
       (
