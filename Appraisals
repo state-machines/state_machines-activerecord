@@ -13,7 +13,13 @@ end
 appraise 'active_record_7.0' do
   gem "sqlite3", platforms: [:mri, :rbx]
   gem "activerecord-jdbcsqlite3-adapter", platform: [:jruby, :truffleruby]
-  gem "activerecord", '~> 7.0.4'
+  gem "activerecord", '~> 7.0.5'
+end
+
+appraise 'active_record_7.1' do
+  gem "sqlite3", platforms: [:mri, :rbx]
+  gem "activerecord-jdbcsqlite3-adapter", platform: [:jruby, :truffleruby]
+  gem "activerecord", '~> 7.1.3'
 end
 
 appraise "active_record_edge" do
