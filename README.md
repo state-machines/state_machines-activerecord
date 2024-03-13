@@ -1,9 +1,9 @@
-[![Build Status](https://travis-ci.org/state-machines/state_machines-activerecord.svg?branch=master)](https://travis-ci.org/state-machines/state_machines-activerecord)
+[![Build Status](https://travis-ci.com/state-machines/state_machines-activerecord.svg?branch=master)](https://travis-ci.com/state-machines/state_machines-activerecord)
 [![Code Climate](https://codeclimate.com/github/state-machines/state_machines-activerecord.svg)](https://codeclimate.com/github/state-machines/state_machines-activerecord)
 
 # StateMachines Active Record Integration
 
-The Active Record 4.1+ integration adds support for database transactions, automatically
+The Active Record 5.1+ integration adds support for database transactions, automatically
 saving the record, named scopes, validation errors.
 
 ## Installation
@@ -27,7 +27,7 @@ For the complete usage guide, see http://www.rubydoc.info/github/state-machines/
 ### Example
 
 ```ruby
-class Vehicle < ActiveRecord::Base
+class Vehicle < ApplicationRecord
   state_machine :initial => :parked do
     before_transition :parked => any - :parked, :do => :put_on_seatbelt
     after_transition any => :parked do |vehicle, transition|
@@ -40,7 +40,7 @@ class Vehicle < ActiveRecord::Base
     end
 
     state :first_gear, :second_gear do
-      validates_presence_of :seatbelt_on
+      validates :seatbelt_on, presence: true
     end
   end
 
@@ -73,7 +73,7 @@ framework, custom validators will not work as expected when defined to run
 in multiple states. For example:
 
 ```ruby
-class Vehicle < ActiveRecord::Base
+class Vehicle < ApplicationRecord
   state_machine do
     state :first_gear, :second_gear do
       validate :speed_is_legal
@@ -87,7 +87,7 @@ for the <tt>:second_gear</tt> state.  To avoid this, you can define your
 custom validation like so:
 
 ```ruby
-class Vehicle < ActiveRecord::Base
+class Vehicle < ApplicationRecord
   state_machine do
     state :first_gear, :second_gear do
       validate {|vehicle| vehicle.speed_is_legal}

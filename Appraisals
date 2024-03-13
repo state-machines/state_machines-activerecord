@@ -1,39 +1,30 @@
-appraise "active_record_4.1" do
- gem "sqlite3", platforms: [:mri, :rbx]
- gem "activerecord-jdbcsqlite3-adapter", platform: :jruby
- gem "activerecord", github: 'rails/rails',  branch: '4-1-stable'
+appraise 'active_record_6.0' do
+  gem "sqlite3", platforms: :mri
+  gem "activerecord-jdbcsqlite3-adapter", platform: [:jruby, :truffleruby]
+  gem "activerecord", '~> 6.0.3'
 end
 
-appraise "active_record_4.2" do
-  gem "sqlite3", platforms: [:mri, :rbx]
-  gem "activerecord-jdbcsqlite3-adapter", platform: :jruby
-  gem "activerecord", github: 'rails/rails',  branch: '4-2-stable'
+appraise 'active_record_6.1' do
+  gem "sqlite3", platforms: :mri
+  gem "activerecord-jdbcsqlite3-adapter", platform: [:jruby, :truffleruby]
+  gem "activerecord", '~> 6.1.3'
 end
 
-appraise "active_record_5.0" do
+appraise 'active_record_7.0' do
   gem "sqlite3", platforms: [:mri, :rbx]
-  gem "activerecord-jdbcsqlite3-adapter", platform: :jruby
-  gem "activerecord", github: 'rails/rails',  branch: '5-0-stable'
-  gem "activemodel", github: 'rails/rails', branch: '5-0-stable'
+  gem "activerecord-jdbcsqlite3-adapter", platform: [:jruby, :truffleruby]
+  gem "activerecord", '~> 7.0.5'
 end
 
-appraise "active_record_5.1" do
+appraise 'active_record_7.1' do
   gem "sqlite3", platforms: [:mri, :rbx]
-  gem "activerecord-jdbcsqlite3-adapter", platform: :jruby
-  gem "activerecord", github: 'rails/rails',  branch: '5-1-stable'
-  gem "activemodel", github: 'rails/rails', branch: '5-1-stable'
-end
-
-appraise "active_record_5.2" do
-  gem "sqlite3", platforms: [:mri, :rbx]
-  gem "activerecord-jdbcsqlite3-adapter", platform: :jruby
-  gem "activerecord", github: 'rails/rails',  branch: '5-2-stable'
-  gem "activemodel", github: 'rails/rails', branch: '5-2-stable'
+  gem "activerecord-jdbcsqlite3-adapter", platform: [:jruby, :truffleruby]
+  gem "activerecord", '~> 7.1.3'
 end
 
 appraise "active_record_edge" do
-  gem "sqlite3", platforms: [:mri, :rbx]
-  gem "activerecord-jdbcsqlite3-adapter", platform: :jruby
-  gem "activerecord", github: 'rails/rails',  branch: 'master'
-  gem "activemodel", github: 'rails/rails', branch: 'master'
+  gem "sqlite3", platforms: :mri
+  gem "activerecord-jdbcsqlite3-adapter", platform: [:jruby, :truffleruby]
+  gem "activerecord", github: 'rails/rails',  branch: 'main'
+  gem "activemodel", github: 'rails/rails', branch: 'main'
 end

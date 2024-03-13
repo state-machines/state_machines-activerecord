@@ -11,7 +11,7 @@ module StateMachines
     # Below is an example of a simple state machine defined within an
     # ActiveRecord model:
     #
-    #   class Vehicle < ActiveRecord::Base
+    #   class Vehicle < ApplicationRecord
     #     state_machine :initial => :parked do
     #       event :ignite do
     #         transition :parked => :idling
@@ -82,7 +82,7 @@ module StateMachines
     # users from tampering with events through URLs / forms, the attribute
     # should be protected like so:
     #
-    #   class Vehicle < ActiveRecord::Base
+    #   class Vehicle < ApplicationRecord
     #     attr_protected :state_event
     #     # attr_accessible ... # Alternative technique
     #
@@ -94,7 +94,7 @@ module StateMachines
     # If you want to only have *some* events be able to fire via mass-assignment,
     # you can build two state machines (one public and one protected) like so:
     #
-    #   class Vehicle < ActiveRecord::Base
+    #   class Vehicle < ApplicationRecord
     #     attr_protected :state_event # Prevent access to events in the first machine
     #
     #     state_machine do
@@ -115,7 +115,7 @@ module StateMachines
     #
     # For example,
     #
-    #   class Message < ActiveRecord::Base
+    #   class Message < ApplicationRecord
     #   end
     #
     #   Vehicle.state_machine do
@@ -136,7 +136,7 @@ module StateMachines
     #
     # To turn off transactions:
     #
-    #   class Vehicle < ActiveRecord::Base
+    #   class Vehicle < ApplicationRecord
     #     state_machine :initial => :parked, :use_transactions => false do
     #       ...
     #     end
@@ -150,7 +150,7 @@ module StateMachines
     # framework, custom validators will not work as expected when defined to run
     # in multiple states.  For example:
     #
-    #   class Vehicle < ActiveRecord::Base
+    #   class Vehicle < ApplicationRecord
     #     state_machine do
     #       ...
     #       state :first_gear, :second_gear do
@@ -163,7 +163,7 @@ module StateMachines
     # for the <tt>:second_gear</tt> state.  To avoid this, you can define your
     # custom validation like so:
     #
-    #   class Vehicle < ActiveRecord::Base
+    #   class Vehicle < ApplicationRecord
     #     state_machine do
     #       ...
     #       state :first_gear, :second_gear do
@@ -206,8 +206,7 @@ module StateMachines
     # These named scopes are essentially the functional equivalent of the
     # following definitions:
     #
-    #   class Vehicle < ActiveRecord::Base
-    #     named_scope :with_states, lambda {|*states| {:conditions => {:state => states}}}
+    #   class Vehicle < ApplicationRecord
     #     # with_states also aliased to with_state
     #
     #     named_scope :without_states, lambda {|*states| {:conditions => ['state NOT IN (?)', states]}}
@@ -235,7 +234,7 @@ module StateMachines
     #
     # For example,
     #
-    #   class Vehicle < ActiveRecord::Base
+    #   class Vehicle < ApplicationRecord
     #     state_machine :initial => :parked do
     #       before_transition any => :idling do |vehicle|
     #         vehicle.put_on_seatbelt
@@ -266,11 +265,11 @@ module StateMachines
     # ActiveRecord, a save failure will cause any records that get created in
     # your callback to roll back.  You can work around this issue like so:
     #
-    #   class TransitionLog < ActiveRecord::Base
+    #   class TransitionLog < ApplicationRecord
     #     establish_connection Rails.env.to_sym
     #   end
     #
-    #   class Vehicle < ActiveRecord::Base
+    #   class Vehicle < ApplicationRecord
     #     state_machine do
     #       after_failure do |vehicle, transition|
     #         TransitionLog.create(:vehicle => vehicle, :transition => transition)
@@ -435,72 +434,23 @@ module StateMachines
       end
 
       # Gets the db default for the machine's attribute
-      if ::ActiveRecord.gem_version >= Gem::Version.new('4.2.0')
-        def owner_class_attribute_default
-          if owner_class.connected? && owner_class.table_exists?
-            owner_class.column_defaults[attribute.to_s]
-          end
-        end
-      else
-        def owner_class_attribute_default
-          if owner_class.connected? && owner_class.table_exists?
-            if column = owner_class.columns_hash[attribute.to_s]
-              column.default
-            end
-          end
+      def owner_class_attribute_default
+        if owner_class.connected? && owner_class.table_exists?
+          owner_class.column_defaults[attribute.to_s]
         end
       end
 
       def define_state_initializer
-        if ::ActiveRecord.gem_version >= Gem::Version.new('5.0.0.alpha')
-          define_helper :instance, <<-end_eval, __FILE__, __LINE__ + 1
-            def initialize(attributes = nil, options = {})
-              super(attributes, options) do |*args|
-                scoped_attributes = (attributes || {}).merge(self.class.scope_attributes)
-
-                self.class.state_machines.initialize_states(self, {}, scoped_attributes)
-                yield(*args) if block_given?
-              end
-            end
-          end_eval
-        elsif ::ActiveRecord.gem_version >= Gem::Version.new('4.2')
-          define_helper :instance, <<-end_eval, __FILE__, __LINE__ + 1
-            def initialize(attributes = nil, options = {})
+        define_helper :instance, <<-end_eval, __FILE__, __LINE__ + 1
+          def initialize(attributes = nil, options = {})
+            super(attributes, options) do |*args|
               scoped_attributes = (attributes || {}).merge(self.class.scope_attributes)
 
-              super(attributes, options) do |*args|
-                self.class.state_machines.initialize_states(self, {}, scoped_attributes)
-                yield(*args) if block_given?
-              end
+              self.class.state_machines.initialize_states(self, {}, scoped_attributes)
+              yield(*args) if block_given?
             end
-          end_eval
-        else
-          # Initializes static states
-          #
-          # This is the only available hook where the default set of attributes
-          # can be overridden for a new object *prior* to the processing of the
-          # attributes passed into #initialize
-          define_helper :class, <<-end_eval, __FILE__, __LINE__ + 1
-            def column_defaults(*) #:nodoc:
-              result = super
-              # No need to pass in an object, since the overrides will be forced
-              self.state_machines.initialize_states(nil, :static => :force, :dynamic => false, :to => result)
-              result
-            end
-          end_eval
-
-          # Initializes dynamic states
-          define_helper :instance, <<-end_eval, __FILE__, __LINE__ + 1
-            def initialize(attributes = nil, options = {})
-              scoped_attributes = (attributes || {}).merge(self.class.scope_attributes)
-
-              super(attributes, options) do |*args|
-                self.class.state_machines.initialize_states(self, {}, scoped_attributes)
-                yield(*args) if block_given?
-              end
-            end
-          end_eval
-        end
+          end
+        end_eval
       end
 
       # Uses around callbacks to run state events if using the :save hook

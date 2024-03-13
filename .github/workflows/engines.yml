@@ -1,0 +1,32 @@
+name: Exotic Ruby
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        ruby-version: ['jruby', 'truffleruby']
+        gemfiles:
+          - gemfiles/active_record_6.0.gemfile
+          - gemfiles/active_record_6.1.gemfile
+          - gemfiles/active_record_7.0.gemfile
+          - gemfiles/active_record_7.1.gemfile
+          - gemfiles/active_record_edge.gemfile
+    env:
+      BUNDLE_GEMFILE: ${{ github.workspace }}/${{ matrix.gemfiles }}
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Ruby
+      uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: ${{ matrix.ruby-version }}
+        bundler-cache: true
+    - name: Run tests
+      run: bundle exec rake
+      continue-on-error: true

@@ -1,7 +1,7 @@
 module StateMachines
   module Integrations
     module ActiveRecord
-      VERSION = '0.6.2-sd'
+      VERSION = '0.9.0'
     end
   end
 end

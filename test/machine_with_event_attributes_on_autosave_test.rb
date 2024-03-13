@@ -42,7 +42,7 @@ class MachineWithEventAttributesOnAutosaveTest < BaseTestCase
       remove_const('Vehicle')
       remove_const('Owner')
     end
-    ActiveSupport::Dependencies.clear if defined?(ActiveSupport::Dependencies)
+    clear_active_support_dependencies
     super
   end
 end
