@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ActiveRecord::Base.connection.create_table(:posts, :force => true) do |t|
   t.string :title
   t.string :content

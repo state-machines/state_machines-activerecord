@@ -1,7 +1,6 @@
-begin
-  require 'pry-byebug'
-rescue LoadError
-end
+# frozen_string_literal: true
+
+require 'debug' if RUBY_ENGINE == 'ruby'
 require 'minitest/reporters'
 Minitest::Reporters.use!(Minitest::Reporters::SpecReporter.new)
 require 'state_machines-activerecord'

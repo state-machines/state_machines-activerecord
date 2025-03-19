@@ -78,16 +78,14 @@ module StateMachines
     # === Security implications
     #
     # Beware that public event attributes mean that events can be fired
-    # whenever mass-assignment is being used.  If you want to prevent malicious
-    # users from tampering with events through URLs / forms, the attribute
-    # should be protected like so:
+    # whenever mass-assignment is being used. If you want to prevent malicious
+    # users from tampering with events through URLs / forms, you should use
+    # Rails' strong parameters to control which attributes are permitted:
     #
-    #   class Vehicle < ApplicationRecord
-    #     attr_protected :state_event
-    #     # attr_accessible ... # Alternative technique
-    #
-    #     state_machine do
-    #       ...
+    #   class VehiclesController < ApplicationController
+    #     def vehicle_params
+    #       params.require(:vehicle).permit(:color, :make, :model)
+    #       # Exclude state_event to prevent tampering
     #     end
     #   end
     #
@@ -95,8 +93,7 @@ module StateMachines
     # you can build two state machines (one public and one protected) like so:
     #
     #   class Vehicle < ApplicationRecord
-    #     attr_protected :state_event # Prevent access to events in the first machine
-    #
+    #     # Define private machine
     #     state_machine do
     #       # Define private events here
     #     end
@@ -105,6 +102,8 @@ module StateMachines
     #     state_machine :public_state, :attribute => :state do
     #       # Define public events here
     #     end
+    #
+    #     # Control access via strong parameters in your controller
     #   end
     #
     # == Transactions
@@ -199,27 +198,28 @@ module StateMachines
     #
     # == Scopes
     #
-    # To assist in filtering models with specific states, a series of named
-    # scopes are defined on the model for finding records with or without a
+    # To assist in filtering models with specific states, a series of scopes
+    # are defined on the model for finding records with or without a
     # particular set of states.
     #
-    # These named scopes are essentially the functional equivalent of the
+    # These scopes are essentially the functional equivalent of the
     # following definitions:
     #
     #   class Vehicle < ApplicationRecord
     #     # with_states also aliased to with_state
+    #     scope :with_states, ->(states) { where(state: states) }
     #
-    #     named_scope :without_states, lambda {|*states| {:conditions => ['state NOT IN (?)', states]}}
     #     # without_states also aliased to without_state
+    #     scope :without_states, ->(states) { where.not(state: states) }
     #   end
     #
     # *Note*, however, that the states are converted to their stored values
     # before being passed into the query.
     #
-    # Because of the way named scopes work in ActiveRecord, they can be
+    # Because of the way scopes work in ActiveRecord, they can be
     # chained like so:
     #
-    #   Vehicle.with_state(:parked).all(:order => 'id DESC')
+    #   Vehicle.with_state(:parked).order(id: :desc)
     #
     # Note that states can also be referenced by the string version of their
     # name:
@@ -266,7 +266,7 @@ module StateMachines
     # your callback to roll back.  You can work around this issue like so:
     #
     #   class TransitionLog < ApplicationRecord
-    #     establish_connection Rails.env.to_sym
+    #     connects_to database: { writing: :primary, reading: :primary }
     #   end
     #
     #   class Vehicle < ApplicationRecord
@@ -279,7 +279,7 @@ module StateMachines
     #     end
     #   end
     #
-    # The +TransitionLog+ model establishes a second connection to the database
+    # The +TransitionLog+ model establishes a separate connection to the database
     # that allows new records to be saved without being affected by rollbacks
     # in the +Vehicle+ model's transaction.
     #
@@ -304,65 +304,9 @@ module StateMachines
     # * (-) end transaction (if enabled)
     # * (9) after_commit
     #
-    # == Observers
-    #
-    # In addition to support for ActiveRecord-like hooks, there is additional
-    # support for ActiveRecord observers.  Because of the way ActiveRecord
-    # observers are designed, there is less flexibility around the specific
-    # transitions that can be hooked in.  However, a large number of hooks
-    # *are* supported.  For example, if a transition for a record's +state+
-    # attribute changes the state from +parked+ to +idling+ via the +ignite+
-    # event, the following observer methods are supported:
-    # * before/after/after_failure_to-_ignite_from_parked_to_idling
-    # * before/after/after_failure_to-_ignite_from_parked
-    # * before/after/after_failure_to-_ignite_to_idling
-    # * before/after/after_failure_to-_ignite
-    # * before/after/after_failure_to-_transition_state_from_parked_to_idling
-    # * before/after/after_failure_to-_transition_state_from_parked
-    # * before/after/after_failure_to-_transition_state_to_idling
-    # * before/after/after_failure_to-_transition_state
-    # * before/after/after_failure_to-_transition
-    #
-    # The following class shows an example of some of these hooks:
-    #
-    #   class VehicleObserver < ActiveRecord::Observer
-    #     def before_save(vehicle)
-    #       # log message
-    #     end
-    #
-    #     # Callback for :ignite event *before* the transition is performed
-    #     def before_ignite(vehicle, transition)
-    #       # log message
-    #     end
-    #
-    #     # Callback for :ignite event *after* the transition has been performed
-    #     def after_ignite(vehicle, transition)
-    #       # put on seatbelt
-    #     end
-    #
-    #     # Generic transition callback *before* the transition is performed
-    #     def after_transition(vehicle, transition)
-    #       Audit.log(vehicle, transition)
-    #     end
-    #   end
-    #
-    # More flexible transition callbacks can be defined directly within the
-    # model as described in StateMachines::Machine#before_transition
-    # and StateMachines::Machine#after_transition.
-    #
-    # To define a single observer for multiple state machines:
-    #
-    #   class StateMachineObserver < ActiveRecord::Observer
-    #     observe Vehicle, Switch, Project
-    #
-    #     def after_transition(record, transition)
-    #       Audit.log(record, transition)
-    #     end
-    #   end
-    #
     # == Internationalization
     #
-    # In Rails 2.2+, any error message that is generated from performing invalid
+    # Any error message that is generated from performing invalid
     # transitions can be localized.  The following default translations are used:
     #
     #   en:
@@ -374,9 +318,6 @@ module StateMachines
     #           invalid_event: "cannot transition when %{state}"
     #           # %{value} = attribute value, %{event} = Human event name, %{state} = Human current state name
     #           invalid_transition: "cannot transition via %{event}"
-    #
-    # Notice that the interpolation syntax is %{key} in Rails 3+.  In Rails 2.x,
-    # the appropriate syntax is {{key}}.
     #
     # You can override these for a specific model like so:
     #
@@ -515,7 +456,7 @@ module StateMachines
 
       private
 
-        # Defines a new named scope with the given name
+        # Defines a new scope with the given name
         def create_scope(name, scope)
           lambda { |model, values| model.where(scope.call(values)) }
         end
