@@ -7,7 +7,7 @@ gem "activerecord-jdbcsqlite3-adapter", platform: [:jruby, :truffleruby]
 gem "activerecord", "~> 7.1.3"
 
 platforms :mri do
-  gem "pry-byebug"
+  gem "debug"
 end
 
 gemspec path: "../"

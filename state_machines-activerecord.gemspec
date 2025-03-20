@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require_relative 'lib/state_machines/integrations/active_record/version'
 
 Gem::Specification.new do |spec|
@@ -12,11 +14,11 @@ Gem::Specification.new do |spec|
 
   spec.files         = Dir['{lib}/**/*', 'LICENSE.txt', 'README.md']
   spec.test_files    = Dir['test/**/*']
-  spec.required_ruby_version     = '>= 3.0'
+  spec.required_ruby_version     = '>= 3.1'
   spec.require_paths = ['lib']
 
   spec.add_dependency 'state_machines-activemodel', '>= 0.9.0'
-  spec.add_dependency 'activerecord' , '>= 6.0'
+  spec.add_dependency 'activerecord' , '>= 7.1'
   spec.add_development_dependency 'rake', '~> 13.0'
   spec.add_development_dependency 'sqlite3', '~> 1.3'
   spec.add_development_dependency 'appraisal', '>= 1'
