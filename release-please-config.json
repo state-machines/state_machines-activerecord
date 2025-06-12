@@ -1,0 +1,10 @@
+{
+  "packages": {
+    ".": {
+      "release-type": "ruby",
+      "package-name": "state_machines-activerecord",
+      "version-file": "lib/state_machines/integrations/active_record/version.rb",
+      "bump-patch-for-minor-pre-major": true
+    }
+  }
+}
