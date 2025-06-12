@@ -1,5 +1,4 @@
-[![Build Status](https://travis-ci.com/state-machines/state_machines-activerecord.svg?branch=master)](https://travis-ci.com/state-machines/state_machines-activerecord)
-[![Code Climate](https://codeclimate.com/github/state-machines/state_machines-activerecord.svg)](https://codeclimate.com/github/state-machines/state_machines-activerecord)
+[![Build Status](https://github.com/state-machines/state_machines-activerecord/actions/workflows/ruby.yml/badge.svg)](https://github.com/state-machines/state_machines-activerecord/actions/workflows/ruby.yml)
 
 # StateMachines Active Record Integration
 
