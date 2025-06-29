@@ -207,10 +207,10 @@ module StateMachines
     #
     #   class Vehicle < ApplicationRecord
     #     # with_states also aliased to with_state
-    #     scope :with_states, ->(states) { where(state: states) }
+    #     scope :with_states, ->(states) { states.present? ? where(state: states) : all }
     #
     #     # without_states also aliased to without_state
-    #     scope :without_states, ->(states) { where.not(state: states) }
+    #     scope :without_states, ->(states) { states.present? ? where.not(state: states) : all }
     #   end
     #
     # *Note*, however, that the states are converted to their stored values
@@ -225,6 +225,15 @@ module StateMachines
     # name:
     #
     #   Vehicle.with_state('parked')
+    #
+    # === Transparent Scopes
+    #
+    # When `nil` is passed to any of the state scopes, they return `all` records
+    # without applying any filters. This allows for more flexible scope chaining
+    # in search interfaces:
+    #
+    #   Vehicle.with_state(params[:state])  # Returns all vehicles if params[:state] is nil
+    #   Vehicle.where(color: 'red').with_state(nil)  # Returns all red vehicles
     #
     # == Callbacks
     #
@@ -458,7 +467,13 @@ module StateMachines
 
       # Defines a new scope with the given name
       def create_scope(_name, scope)
-        ->(model, values) { model.where(scope.call(values)) }
+        ->(model, values) { values.present? ? model.where(scope.call(values)) : model.all }
+      end
+
+      # Generates the results for the given scope based on one or more states to filter by
+      def run_scope(scope, machine, klass, states)
+        values = states.flatten.compact.map { |state| machine.states.fetch(state).value }
+        scope.call(klass, values)
       end
 
       # ActiveModel's use of method_missing / respond_to for attribute methods

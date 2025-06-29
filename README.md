@@ -63,6 +63,15 @@ Vehicle.with_state(:parked)                         # also plural #with_states
 Vehicle.without_states(:first_gear, :second_gear)   # also singular #without_state
 ```
 
+#### Transparent Scopes
+State scopes will return all records when `nil` is passed, making them perfect for search filters:
+
+```ruby
+Vehicle.with_state(nil)                            # Returns all vehicles
+Vehicle.with_state(params[:state])                 # Returns all vehicles if params[:state] is nil
+Vehicle.where(color: 'red').with_state(nil)        # Returns all red vehicles (chainable)
+```
+
 ### State driven validations
 
 As mentioned in `StateMachines::Machine#state`, you can define behaviors,
