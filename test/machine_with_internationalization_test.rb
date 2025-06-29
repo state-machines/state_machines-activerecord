@@ -14,14 +14,14 @@ class MachineWithInternationalizationTest < BaseTestCase
 
   def test_should_use_defaults
     I18n.backend.store_translations(:en, {
-                                           :activerecord => {:errors => {:messages => {:invalid_transition => "cannot #{interpolation_key('event')}"}}}
-                                       })
+                                      activerecord: { errors: { messages: { invalid_transition: "cannot #{interpolation_key('event')}" } } }
+                                    })
 
     machine = StateMachines::Machine.new(@model)
     machine.state :parked, :idling
     machine.event :ignite
 
-    record = @model.new(:state => 'idling')
+    record = @model.new(state: 'idling')
 
     machine.invalidate(record, :state, :invalid_transition, [[:event, 'ignite']])
     assert_equal ['State cannot transition via "ignite"'], record.errors.full_messages
@@ -29,23 +29,24 @@ class MachineWithInternationalizationTest < BaseTestCase
 
   def test_should_allow_customized_error_key
     I18n.backend.store_translations(:en, {
-                                           :activerecord => {:errors => {:messages => {:bad_transition => "cannot #{interpolation_key('event')}"}}}
-                                       })
+                                      activerecord: { errors: { messages: { bad_transition: "cannot #{interpolation_key('event')}" } } }
+                                    })
 
-    machine = StateMachines::Machine.new(@model, :messages => {:invalid_transition => :bad_transition})
+    machine = StateMachines::Machine.new(@model, messages: { invalid_transition: :bad_transition })
     machine.state :parked, :idling
 
-    record = @model.new(:state => 'idling')
+    record = @model.new(state: 'idling')
 
     machine.invalidate(record, :state, :invalid_transition, [[:event, 'ignite']])
     assert_equal ['State cannot ignite'], record.errors.full_messages
   end
 
   def test_should_allow_customized_error_string
-    machine = StateMachines::Machine.new(@model, :messages => {:invalid_transition => "cannot #{interpolation_key('event')}"})
+    machine = StateMachines::Machine.new(@model,
+                                         messages: { invalid_transition: "cannot #{interpolation_key('event')}" })
     machine.state :parked, :idling
 
-    record = @model.new(:state => 'idling')
+    record = @model.new(state: 'idling')
 
     machine.invalidate(record, :state, :invalid_transition, [[:event, 'ignite']])
     assert_equal ['State cannot ignite'], record.errors.full_messages
@@ -53,8 +54,8 @@ class MachineWithInternationalizationTest < BaseTestCase
 
   def test_should_allow_customized_state_key_scoped_to_class_and_machine
     I18n.backend.store_translations(:en, {
-                                           :activerecord => {:state_machines => {:'foo' => {:state => {:states => {:parked => 'shutdown'}}}}}
-                                       })
+                                      activerecord: { state_machines: { foo: { state: { states: { parked: 'shutdown' } } } } }
+                                    })
 
     machine = StateMachines::Machine.new(@model)
     machine.state :parked
@@ -64,8 +65,8 @@ class MachineWithInternationalizationTest < BaseTestCase
 
   def test_should_allow_customized_state_key_scoped_to_class
     I18n.backend.store_translations(:en, {
-                                           :activerecord => {:state_machines => {:'foo' => {:states => {:parked => 'shutdown'}}}}
-                                       })
+                                      activerecord: { state_machines: { foo: { states: { parked: 'shutdown' } } } }
+                                    })
 
     machine = StateMachines::Machine.new(@model)
     machine.state :parked
@@ -75,8 +76,8 @@ class MachineWithInternationalizationTest < BaseTestCase
 
   def test_should_allow_customized_state_key_scoped_to_machine
     I18n.backend.store_translations(:en, {
-                                           :activerecord => {:state_machines => {:state => {:states => {:parked => 'shutdown'}}}}
-                                       })
+                                      activerecord: { state_machines: { state: { states: { parked: 'shutdown' } } } }
+                                    })
 
     machine = StateMachines::Machine.new(@model)
     machine.state :parked
@@ -86,8 +87,8 @@ class MachineWithInternationalizationTest < BaseTestCase
 
   def test_should_allow_customized_state_key_unscoped
     I18n.backend.store_translations(:en, {
-                                           :activerecord => {:state_machines => {:states => {:parked => 'shutdown'}}}
-                                       })
+                                      activerecord: { state_machines: { states: { parked: 'shutdown' } } }
+                                    })
 
     machine = StateMachines::Machine.new(@model)
     machine.state :parked
@@ -97,8 +98,8 @@ class MachineWithInternationalizationTest < BaseTestCase
 
   def test_should_support_nil_state_key
     I18n.backend.store_translations(:en, {
-                                           :activerecord => {:state_machines => {:states => {:nil => 'empty'}}}
-                                       })
+                                      activerecord: { state_machines: { states: { nil: 'empty' } } }
+                                    })
 
     machine = StateMachines::Machine.new(@model)
 
@@ -107,8 +108,8 @@ class MachineWithInternationalizationTest < BaseTestCase
 
   def test_should_allow_customized_event_key_scoped_to_class_and_machine
     I18n.backend.store_translations(:en, {
-                                           :activerecord => {:state_machines => {:'foo' => {:state => {:events => {:park => 'stop'}}}}}
-                                       })
+                                      activerecord: { state_machines: { foo: { state: { events: { park: 'stop' } } } } }
+                                    })
 
     machine = StateMachines::Machine.new(@model)
     machine.event :park
@@ -118,8 +119,8 @@ class MachineWithInternationalizationTest < BaseTestCase
 
   def test_should_allow_customized_event_key_scoped_to_class
     I18n.backend.store_translations(:en, {
-                                           :activerecord => {:state_machines => {:'foo' => {:events => {:park => 'stop'}}}}
-                                       })
+                                      activerecord: { state_machines: { foo: { events: { park: 'stop' } } } }
+                                    })
 
     machine = StateMachines::Machine.new(@model)
     machine.event :park
@@ -129,8 +130,8 @@ class MachineWithInternationalizationTest < BaseTestCase
 
   def test_should_allow_customized_event_key_scoped_to_machine
     I18n.backend.store_translations(:en, {
-                                           :activerecord => {:state_machines => {:state => {:events => {:park => 'stop'}}}}
-                                       })
+                                      activerecord: { state_machines: { state: { events: { park: 'stop' } } } }
+                                    })
 
     machine = StateMachines::Machine.new(@model)
     machine.event :park
@@ -140,8 +141,8 @@ class MachineWithInternationalizationTest < BaseTestCase
 
   def test_should_allow_customized_event_key_unscoped
     I18n.backend.store_translations(:en, {
-                                           :activerecord => {:state_machines => {:events => {:park => 'stop'}}}
-                                       })
+                                      activerecord: { state_machines: { events: { park: 'stop' } } }
+                                    })
 
     machine = StateMachines::Machine.new(@model)
     machine.event :park
@@ -167,7 +168,7 @@ class MachineWithInternationalizationTest < BaseTestCase
     machine.state :parked, :idling
     machine.event :ignite
 
-    record = @model.new(:state => 'idling')
+    record = @model.new(state: 'idling')
 
     machine.invalidate(record, :state, :invalid_transition, [[:event, 'ignite']])
     assert_equal ['State cannot transition'], record.errors.full_messages
@@ -176,6 +177,7 @@ class MachineWithInternationalizationTest < BaseTestCase
   end
 
   private
+
   def interpolation_key(key)
     "%{#{key}}"
   end

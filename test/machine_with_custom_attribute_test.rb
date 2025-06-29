@@ -5,10 +5,11 @@ require 'stringio'
 
 class MachineWithCustomAttributeTest < BaseTestCase
   def setup
-    @original_stderr, $stderr = $stderr, StringIO.new
+    @original_stderr = $stderr
+    $stderr = StringIO.new
 
     @model = new_model
-    @machine = StateMachines::Machine.new(@model, :public_state, :attribute => :state)
+    @machine = StateMachines::Machine.new(@model, :public_state, attribute: :state)
     @record = @model.new
   end
 

@@ -9,24 +9,26 @@ class MachineWithScopesAndJoinsTest < BaseTestCase
 
     @vehicle = new_model(:vehicle) do
       connection.add_column table_name, :company_id, :integer
-      belongs_to :company, :class_name => 'MachineWithScopesAndJoinsTest::Company'
+      belongs_to :company, class_name: 'MachineWithScopesAndJoinsTest::Company'
     end
     MachineWithScopesAndJoinsTest.const_set('Vehicle', @vehicle)
 
-    @company_machine = StateMachines::Machine.new(@company, :initial => :active)
-    @vehicle_machine = StateMachines::Machine.new(@vehicle, :initial => :parked)
+    @company_machine = StateMachines::Machine.new(@company, initial: :active)
+    @vehicle_machine = StateMachines::Machine.new(@vehicle, initial: :parked)
     @vehicle_machine.state :idling
 
     @ford = @company.create
-    @mustang = @vehicle.create(:company => @ford)
+    @mustang = @vehicle.create(company: @ford)
   end
 
   def test_should_find_records_in_with_scope
-    assert_equal [@mustang], @vehicle.with_states(:parked).joins(:company).where("#{@company.table_name}.state = \"active\"")
+    assert_equal [@mustang],
+                 @vehicle.with_states(:parked).joins(:company).where("#{@company.table_name}.state = \"active\"")
   end
 
   def test_should_find_records_in_without_scope
-    assert_equal [@mustang], @vehicle.without_states(:idling).joins(:company).where("#{@company.table_name}.state = \"active\"")
+    assert_equal [@mustang],
+                 @vehicle.without_states(:idling).joins(:company).where("#{@company.table_name}.state = \"active\"")
   end
 
   def teardown

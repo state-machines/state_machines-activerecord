@@ -8,7 +8,7 @@ class MachineWithAliasedAttributeTest < BaseTestCase
       alias_attribute :vehicle_status, :state
     end
 
-    @machine = StateMachines::Machine.new(@model, :status, :attribute => :vehicle_status)
+    @machine = StateMachines::Machine.new(@model, :status, attribute: :vehicle_status)
     @machine.state :parked
 
     @record = @model.new
@@ -22,4 +22,3 @@ class MachineWithAliasedAttributeTest < BaseTestCase
     assert @record.status?(:parked)
   end
 end
-

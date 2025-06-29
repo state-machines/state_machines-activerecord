@@ -5,13 +5,14 @@ require 'stringio'
 
 class MachineWithSameIntegerColumnDefaultTest < BaseTestCase
   def setup
-    @original_stderr, $stderr = $stderr, StringIO.new
+    @original_stderr = $stderr
+    $stderr = StringIO.new
 
     @model = new_model do
-      connection.add_column table_name, :status, :integer, :default => 1
+      connection.add_column table_name, :status, :integer, default: 1
     end
-    @machine = StateMachines::Machine.new(@model, :status, :initial => :parked) do
-      state :parked, :value => 1
+    @machine = StateMachines::Machine.new(@model, :status, initial: :parked) do
+      state :parked, value: 1
     end
     @record = @model.new
   end
@@ -29,4 +30,3 @@ class MachineWithSameIntegerColumnDefaultTest < BaseTestCase
     super
   end
 end
-

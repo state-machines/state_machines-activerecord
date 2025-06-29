@@ -5,7 +5,8 @@ require 'stringio'
 
 class MachineWithConflictingStateNameTest < BaseTestCase
   def setup
-    @original_stderr, $stderr = $stderr, StringIO.new
+    @original_stderr = $stderr
+    $stderr = StringIO.new
 
     @model = new_model
   end
@@ -18,7 +19,7 @@ class MachineWithConflictingStateNameTest < BaseTestCase
   end
 
   def test_should_output_warning_with_same_machine_attribute
-    @machine = StateMachines::Machine.new(@model, :public_state, :attribute => :state)
+    @machine = StateMachines::Machine.new(@model, :public_state, attribute: :state)
     @machine.state :state
 
     assert_match(/^Instance method "state\?" is already defined in .+, use generic helper instead.*\n$/, $stderr.string)

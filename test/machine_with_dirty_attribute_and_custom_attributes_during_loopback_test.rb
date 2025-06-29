@@ -7,7 +7,7 @@ class MachineWithDirtyAttributeAndCustomAttributesDuringLoopbackTest < BaseTestC
     @model = new_model do
       connection.add_column table_name, :status, :string
     end
-    @machine = StateMachines::Machine.new(@model, :status, :initial => :parked)
+    @machine = StateMachines::Machine.new(@model, :status, initial: :parked)
     @machine.event :park
 
     @record = @model.create

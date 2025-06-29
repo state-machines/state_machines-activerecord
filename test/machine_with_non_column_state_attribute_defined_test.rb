@@ -8,7 +8,7 @@ class MachineWithNonColumnStateAttributeDefinedTest < BaseTestCase
       attr_accessor :status
     end
 
-    @machine = StateMachines::Machine.new(@model, :status, :initial => :parked)
+    @machine = StateMachines::Machine.new(@model, :status, initial: :parked)
     @machine.other_states(:idling)
     @record = @model.new
   end

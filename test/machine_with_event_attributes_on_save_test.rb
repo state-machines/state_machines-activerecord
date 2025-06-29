@@ -7,7 +7,7 @@ class MachineWithEventAttributesOnSaveTest < BaseTestCase
     @model = new_model
     @machine = StateMachines::Machine.new(@model)
     @machine.event :ignite do
-      transition :parked => :idling
+      transition parked: :idling
     end
 
     @record = @model.new
@@ -43,7 +43,10 @@ class MachineWithEventAttributesOnSaveTest < BaseTestCase
 
   def test_should_run_around_callbacks_before_yield
     ran_callback = false
-    @machine.around_transition { |block| ran_callback = true; block.call }
+    @machine.around_transition do |block|
+      ran_callback = true
+      block.call
+    end
 
     @record.save
     assert ran_callback
@@ -51,7 +54,10 @@ class MachineWithEventAttributesOnSaveTest < BaseTestCase
 
   def test_should_run_around_callbacks_before_yield_once
     around_before_count = 0
-    @machine.around_transition { |block| around_before_count += 1; block.call }
+    @machine.around_transition do |block|
+      around_before_count += 1
+      block.call
+    end
 
     @record.save
     assert_equal 1, around_before_count
@@ -71,54 +77,63 @@ class MachineWithEventAttributesOnSaveTest < BaseTestCase
   end
 
   def test_should_not_run_after_callbacks_with_failures_disabled_if_fails
-    @model.before_create { |record| abort_from_callback }
+    @model.before_create { |_record| abort_from_callback }
 
     ran_callback = false
     @machine.after_transition { ran_callback = true }
 
     begin
-      ; @record.save;
-    rescue;
+      @record.save
+    rescue StandardError
     end
     refute ran_callback
   end
 
   def test_should_run_failure_callbacks__if_fails
-    @model.before_create { |record| abort_from_callback }
+    @model.before_create { |_record| abort_from_callback }
 
     ran_callback = false
     @machine.after_failure { ran_callback = true }
 
     begin
-      ; @record.save;
-    rescue;
+      @record.save
+    rescue StandardError
     end
     assert ran_callback
   end
 
   def test_should_not_run_around_callbacks_if_fails
-    @model.before_create { |record| abort_from_callback }
+    @model.before_create { |_record| abort_from_callback }
 
     ran_callback = false
-    @machine.around_transition { |block| block.call; ran_callback = true }
+    @machine.around_transition do |block|
+      block.call
+      ran_callback = true
+    end
 
     begin
-      ; @record.save;
-    rescue;
+      @record.save
+    rescue StandardError
     end
     refute ran_callback
   end
 
   def test_should_run_around_callbacks_after_yield
     ran_callback = false
-    @machine.around_transition { |block| block.call; ran_callback = true }
+    @machine.around_transition do |block|
+      block.call
+      ran_callback = true
+    end
 
     @record.save
     assert ran_callback
   end
 
   def test_should_run_before_transitions_within_transaction
-    @machine.before_transition { @model.create; raise ActiveRecord::Rollback }
+    @machine.before_transition do
+      @model.create
+      raise ActiveRecord::Rollback
+    end
 
     begin
       @record.save
@@ -129,7 +144,10 @@ class MachineWithEventAttributesOnSaveTest < BaseTestCase
   end
 
   def test_should_run_after_transitions_within_transaction
-    @machine.after_transition { @model.create; raise ActiveRecord::Rollback }
+    @machine.after_transition do
+      @model.create
+      raise ActiveRecord::Rollback
+    end
 
     begin
       @record.save
@@ -140,7 +158,10 @@ class MachineWithEventAttributesOnSaveTest < BaseTestCase
   end
 
   def test_should_run_around_transition_within_transaction
-    @machine.around_transition { @model.create; raise ActiveRecord::Rollback }
+    @machine.around_transition do
+      @model.create
+      raise ActiveRecord::Rollback
+    end
 
     begin
       @record.save
@@ -152,10 +173,10 @@ class MachineWithEventAttributesOnSaveTest < BaseTestCase
 
   def test_should_allow_additional_transitions_to_new_state_in_after_transitions
     @machine.event :park do
-      transition :idling => :parked
+      transition idling: :parked
     end
 
-    @machine.after_transition(:on => :ignite) { @record.park }
+    @machine.after_transition(on: :ignite) { @record.park }
 
     @record.save
     assert_equal 'parked', @record.state
@@ -166,10 +187,10 @@ class MachineWithEventAttributesOnSaveTest < BaseTestCase
 
   def test_should_allow_additional_transitions_to_previous_state_in_after_transitions
     @machine.event :shift_up do
-      transition :idling => :first_gear
+      transition idling: :first_gear
     end
 
-    @machine.after_transition(:on => :ignite) { @record.shift_up }
+    @machine.after_transition(on: :ignite) { @record.shift_up }
 
     @record.save
     assert_equal 'first_gear', @record.state
@@ -198,7 +219,10 @@ class MachineWithEventAttributesOnSaveTest < BaseTestCase
 
   def test_should_raise_on_around_transition_rollback!
     @machine.before_transition { @model.create! }
-    @machine.around_transition { @model.create!; raise ActiveRecord::Rollback }
+    @machine.around_transition do
+      @model.create!
+      raise ActiveRecord::Rollback
+    end
 
     raised = false
     begin
@@ -213,7 +237,10 @@ class MachineWithEventAttributesOnSaveTest < BaseTestCase
 
   def test_should_return_nil_on_around_transition_rollback
     @machine.before_transition { @model.create! }
-    @machine.around_transition { @model.create!; raise ActiveRecord::Rollback }
+    @machine.around_transition do
+      @model.create!
+      raise ActiveRecord::Rollback
+    end
     assert_nil @record.save
     assert_equal 0, @model.count
   end

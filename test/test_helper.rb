@@ -14,27 +14,28 @@ ActiveSupport.test_order = :random
 
 class BaseTestCase < ActiveSupport::TestCase
   protected
+
   # Creates a new ActiveRecord model (and the associated table)
-  def new_model(create_table = :foo, &block)
+  def new_model(create_table = :foo, &)
     name = create_table || :foo
     table_name = "#{name}_#{SecureRandom.hex(6)}"
 
     model = Class.new(ActiveRecord::Base) do
       self.table_name = table_name.to_s
-      connection.create_table(table_name, :force => true) { |t| t.string(:state) } if create_table
+      connection.create_table(table_name, force: true) { |t| t.string(:state) } if create_table
 
       define_method(:abort_from_callback) do
         throw :abort
       end
 
       (
-      class << self;
-        self;
+      class << self
+        self
       end).class_eval do
         define_method(:name) { "#{name.to_s.capitalize}" }
       end
     end
-    model.class_eval(&block) if block_given?
+    model.class_eval(&) if block_given?
     model.reset_column_information if create_table
     model
   end

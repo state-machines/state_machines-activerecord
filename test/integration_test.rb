@@ -22,6 +22,6 @@ class IntegrationTest < BaseTestCase
   end
 
   def test_should_have_defaults
-    assert_equal({action: :save, use_transactions: true}, StateMachines::Integrations::ActiveRecord.defaults)
+    assert_equal({ action: :save, use_transactions: true }, StateMachines::Integrations::ActiveRecord.defaults)
   end
 end

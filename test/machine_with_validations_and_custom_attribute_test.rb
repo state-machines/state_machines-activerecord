@@ -5,7 +5,7 @@ require_relative 'test_helper'
 class MachineWithValidationsAndCustomAttributeTest < BaseTestCase
   def setup
     @model = new_model
-    @machine = StateMachines::Machine.new(@model, :status, :attribute => :state)
+    @machine = StateMachines::Machine.new(@model, :status, attribute: :state)
     @machine.state :parked
 
     @record = @model.new

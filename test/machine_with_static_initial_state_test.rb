@@ -7,7 +7,7 @@ class MachineWithStaticInitialStateTest < BaseTestCase
     @model = new_model(:vehicle) do
       attr_accessor :value
     end
-    @machine = StateMachines::Machine.new(@model, :initial => :parked)
+    @machine = StateMachines::Machine.new(@model, initial: :parked)
   end
 
   def test_should_set_initial_state_on_created_object
@@ -21,7 +21,7 @@ class MachineWithStaticInitialStateTest < BaseTestCase
   end
 
   def test_should_still_set_attributes
-    record = @model.new(:value => 1)
+    record = @model.new(value: 1)
     assert_equal 1, record.value
   end
 
@@ -57,7 +57,7 @@ class MachineWithStaticInitialStateTest < BaseTestCase
       attr_accessor :state_during_setter
 
       remove_method :value=
-      define_method(:value=) do |value|
+      define_method(:value=) do |_value|
         self.state_during_setter = state
       end
     end
@@ -67,7 +67,7 @@ class MachineWithStaticInitialStateTest < BaseTestCase
   end
 
   def test_should_not_set_initial_state_after_already_initialized
-    record = @model.new(:value => 1)
+    record = @model.new(value: 1)
     assert_equal 'parked', record.state
 
     record.state = 'idling'
@@ -92,14 +92,14 @@ class MachineWithStaticInitialStateTest < BaseTestCase
   def test_should_use_stored_values_when_loading_from_database
     @machine.state :idling
 
-    record = @model.find(@model.create(:state => 'idling').id)
+    record = @model.find(@model.create(state: 'idling').id)
     assert_equal 'idling', record.state
   end
 
   def test_should_use_stored_values_when_loading_from_database_with_nil_state
     @machine.state nil
 
-    record = @model.find(@model.create(:state => nil).id)
+    record = @model.find(@model.create(state: nil).id)
     assert_nil record.state
   end
 
@@ -111,12 +111,12 @@ class MachineWithStaticInitialStateTest < BaseTestCase
     MachineWithStaticInitialStateTest.const_set('Vehicle', @model)
 
     owner_model = new_model(:owner) do
-      has_many :vehicles, :class_name => 'MachineWithStaticInitialStateTest::Vehicle'
+      has_many :vehicles, class_name: 'MachineWithStaticInitialStateTest::Vehicle'
     end
     MachineWithStaticInitialStateTest.const_set('Owner', owner_model)
 
     owner = owner_model.create
-    @model.create(:state => 'idling', :owner_id => owner.id)
+    @model.create(state: 'idling', owner_id: owner.id)
     assert_equal 'idling', owner.vehicles[0].state
   end
 
@@ -128,12 +128,12 @@ class MachineWithStaticInitialStateTest < BaseTestCase
     MachineWithStaticInitialStateTest.const_set('Vehicle', @model)
 
     owner_model = new_model(:owner) do
-      has_one :vehicle, :class_name => 'MachineWithStaticInitialStateTest::Vehicle'
+      has_one :vehicle, class_name: 'MachineWithStaticInitialStateTest::Vehicle'
     end
     MachineWithStaticInitialStateTest.const_set('Owner', owner_model)
 
     owner = owner_model.create
-    @model.create(:state => 'idling', :owner_id => owner.id)
+    @model.create(state: 'idling', owner_id: owner.id)
     assert_equal 'idling', owner.vehicle.state
   end
 
@@ -145,13 +145,13 @@ class MachineWithStaticInitialStateTest < BaseTestCase
     driver_model = new_model(:driver) do
       connection.add_column table_name, :vehicle_id, :integer
 
-      belongs_to :vehicle, :class_name => 'MachineWithStaticInitialStateTest::Vehicle'
+      belongs_to :vehicle, class_name: 'MachineWithStaticInitialStateTest::Vehicle'
     end
 
     MachineWithStaticInitialStateTest.const_set('Driver', driver_model)
 
-    record = @model.create(:state => 'idling')
-    driver = driver_model.create(:vehicle_id => record.id)
+    record = @model.create(state: 'idling')
+    driver = driver_model.create(vehicle_id: record.id)
     assert_equal 'idling', driver.vehicle.state
   end
 
@@ -166,4 +166,3 @@ class MachineWithStaticInitialStateTest < BaseTestCase
     super
   end
 end
-

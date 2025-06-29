@@ -46,4 +46,3 @@ class MachineWithValidationsTest < BaseTestCase
     assert_equal ['State is invalid'], @record.errors.full_messages
   end
 end
-

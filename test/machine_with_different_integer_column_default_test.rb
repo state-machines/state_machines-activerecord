@@ -5,13 +5,14 @@ require 'stringio'
 
 class MachineWithDifferentIntegerColumnDefaultTest < BaseTestCase
   def setup
-    @original_stderr, $stderr = $stderr, StringIO.new
+    @original_stderr = $stderr
+    $stderr = StringIO.new
 
     @model = new_model do
-      connection.add_column table_name, :status, :integer, :default => 0
+      connection.add_column table_name, :status, :integer, default: 0
     end
-    @machine = StateMachines::Machine.new(@model, :status, :initial => :parked)
-    @machine.state :parked, :value => 1
+    @machine = StateMachines::Machine.new(@model, :status, initial: :parked)
+    @machine.state :parked, value: 1
     @record = @model.new
   end
 
@@ -20,7 +21,9 @@ class MachineWithDifferentIntegerColumnDefaultTest < BaseTestCase
   end
 
   def test_should_generate_a_warning
-    assert_match(/Both Foo and its :status machine have defined a different default for "status". Use only one or the other for defining defaults to avoid unexpected behaviors\./, $stderr.string)
+    assert_match(
+      /Both Foo and its :status machine have defined a different default for "status". Use only one or the other for defining defaults to avoid unexpected behaviors\./, $stderr.string
+    )
   end
 
   def teardown
@@ -28,4 +31,3 @@ class MachineWithDifferentIntegerColumnDefaultTest < BaseTestCase
     super
   end
 end
-

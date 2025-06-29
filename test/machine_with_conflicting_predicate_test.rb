@@ -5,7 +5,7 @@ require_relative 'test_helper'
 class MachineWithConflictingPredicateTest < BaseTestCase
   def setup
     @model = new_model do
-      def state?(*args)
+      def state?(*_args)
         true
       end
     end
