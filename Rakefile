@@ -8,4 +8,4 @@ Rake::TestTask.new do |t|
 end
 
 desc 'Default: run all tests.'
-task :default => :test
+task default: :test

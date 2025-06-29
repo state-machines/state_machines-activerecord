@@ -7,7 +7,7 @@ class MachineWithEventAttributesOnSaveBangTest < BaseTestCase
     @model = new_model
     @machine = StateMachines::Machine.new(@model)
     @machine.event :ignite do
-      transition :parked => :idling
+      transition parked: :idling
     end
 
     @record = @model.new
@@ -47,7 +47,10 @@ class MachineWithEventAttributesOnSaveBangTest < BaseTestCase
 
   def test_should_run_around_callbacks_before_yield
     ran_callback = false
-    @machine.around_transition { |block| ran_callback = true; block.call }
+    @machine.around_transition do |block|
+      ran_callback = true
+      block.call
+    end
 
     @record.save!
     assert ran_callback
@@ -55,7 +58,10 @@ class MachineWithEventAttributesOnSaveBangTest < BaseTestCase
 
   def test_should_run_around_callbacks_before_yield_once
     around_before_count = 0
-    @machine.around_transition { |block| around_before_count += 1; block.call }
+    @machine.around_transition do |block|
+      around_before_count += 1
+      block.call
+    end
 
     @record.save!
     assert_equal 1, around_before_count
@@ -76,7 +82,10 @@ class MachineWithEventAttributesOnSaveBangTest < BaseTestCase
 
   def test_should_run_around_callbacks_after_yield
     ran_callback = false
-    @machine.around_transition { |block| block.call; ran_callback = true }
+    @machine.around_transition do |block|
+      block.call
+      ran_callback = true
+    end
 
     @record.save!
     assert ran_callback

@@ -5,7 +5,7 @@ require_relative 'test_helper'
 class MachineWithFailedActionTest < BaseTestCase
   def setup
     @model = new_model do
-      validates_inclusion_of :state, :in => %w(first_gear)
+      validates_inclusion_of :state, in: %w[first_gear]
     end
 
     @machine = StateMachines::Machine.new(@model)
@@ -16,9 +16,13 @@ class MachineWithFailedActionTest < BaseTestCase
     @machine.before_transition { @callbacks << :before }
     @machine.after_transition { @callbacks << :after }
     @machine.after_failure { @callbacks << :after_failure }
-    @machine.around_transition { |block| @callbacks << :around_before; block.call; @callbacks << :around_after }
+    @machine.around_transition do |block|
+      @callbacks << :around_before
+      block.call
+      @callbacks << :around_after
+    end
 
-    @record = @model.new(:state => 'parked')
+    @record = @model.new(state: 'parked')
     @transition = StateMachines::Transition.new(@record, @machine, :ignite, :parked, :idling)
     @result = @transition.perform
   end
@@ -36,7 +40,6 @@ class MachineWithFailedActionTest < BaseTestCase
   end
 
   def test_should_run_before_callbacks_and_after_callbacks_with_failures
-    assert_equal [:before, :around_before, :after_failure], @callbacks
+    assert_equal %i[before around_before after_failure], @callbacks
   end
 end
-

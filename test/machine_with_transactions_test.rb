@@ -5,7 +5,7 @@ require_relative 'test_helper'
 class MachineWithTransactionsTest < BaseTestCase
   def setup
     @model = new_model
-    @machine = StateMachines::Machine.new(@model, :use_transactions => true)
+    @machine = StateMachines::Machine.new(@model, use_transactions: true)
   end
 
   def test_should_rollback_transaction_if_false

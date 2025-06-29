@@ -3,7 +3,7 @@ require 'active_record'
 require 'state_machines/integrations/active_record/version'
 
 module StateMachines
-  module Integrations #:nodoc:
+  module Integrations # :nodoc:
     # Adds support for integrating state machines with ActiveRecord models.
     #
     # == Examples
@@ -358,7 +358,7 @@ module StateMachines
       include ActiveModel
 
       # The default options to use for state machines using this integration
-      @defaults = {:action => :save, use_transactions: true}
+      @defaults = { action: :save, use_transactions: true }
       class << self
         # Classes that inherit from ActiveRecord::Base will automatically use
         # the ActiveRecord integration.
@@ -376,13 +376,13 @@ module StateMachines
 
       # Gets the db default for the machine's attribute
       def owner_class_attribute_default
-        if owner_class.connected? && owner_class.table_exists?
-          owner_class.column_defaults[attribute.to_s]
-        end
+        return unless owner_class.connected? && owner_class.table_exists?
+
+        owner_class.column_defaults[attribute.to_s]
       end
 
       def define_state_initializer
-        define_helper :instance, <<-end_eval, __FILE__, __LINE__ + 1
+        define_helper :instance, <<-END_EVAL, __FILE__, __LINE__ + 1
           def initialize(attributes = nil, *)
             super(attributes) do |*args|
               scoped_attributes = (attributes || {}).merge(self.class.scope_attributes)
@@ -391,13 +391,13 @@ module StateMachines
               yield(*args) if block_given?
             end
           end
-        end_eval
+        END_EVAL
       end
 
       # Uses around callbacks to run state events if using the :save hook
       def define_action_hook
         if action_hook == :save
-          define_helper :instance, <<-end_eval, __FILE__, __LINE__ + 1
+          define_helper :instance, <<-END_EVAL, __FILE__, __LINE__ + 1
               def save(*, **)
                 self.class.state_machine(#{name.inspect}).send(:around_save, self) { super }
               end
@@ -410,15 +410,15 @@ module StateMachines
               def changed_for_autosave?
                 super || self.class.state_machines.any? {|name, machine| machine.action == :save && machine.read(self, :event)}
               end
-          end_eval
+          END_EVAL
         else
           super
         end
       end
 
       # Runs state events around the machine's :save action
-      def around_save(object)
-        object.class.state_machines.transitions(object, action).perform { yield }
+      def around_save(object, &)
+        object.class.state_machines.transitions(object, action).perform(&)
       end
 
       # Creates a scope for finding records *with* a particular state or
@@ -456,17 +456,17 @@ module StateMachines
 
       private
 
-        # Defines a new scope with the given name
-        def create_scope(name, scope)
-          lambda { |model, values| model.where(scope.call(values)) }
-        end
+      # Defines a new scope with the given name
+      def create_scope(_name, scope)
+        ->(model, values) { model.where(scope.call(values)) }
+      end
 
-        # ActiveModel's use of method_missing / respond_to for attribute methods
-        # breaks both ancestor lookups and defined?(super).  Need to special-case
-        # the existence of query attribute methods.
-        def owner_class_ancestor_has_method?(scope, method)
-          scope == :instance && method == "#{attribute}?" ? owner_class : super
-        end
+      # ActiveModel's use of method_missing / respond_to for attribute methods
+      # breaks both ancestor lookups and defined?(super).  Need to special-case
+      # the existence of query attribute methods.
+      def owner_class_ancestor_has_method?(scope, method)
+        scope == :instance && method == "#{attribute}?" ? owner_class : super
+      end
     end
     register(ActiveRecord)
   end

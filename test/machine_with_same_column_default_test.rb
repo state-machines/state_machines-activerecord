@@ -4,12 +4,13 @@ require_relative 'test_helper'
 
 class MachineWithSameColumnDefaultTest < BaseTestCase
   def setup
-    @original_stderr, $stderr = $stderr, StringIO.new
+    @original_stderr = $stderr
+    $stderr = StringIO.new
 
     @model = new_model do
-      connection.add_column table_name, :status, :string, :default => 'parked'
+      connection.add_column table_name, :status, :string, default: 'parked'
     end
-    @machine = StateMachines::Machine.new(@model, :status, :initial => :parked)
+    @machine = StateMachines::Machine.new(@model, :status, initial: :parked)
     @record = @model.new
   end
 

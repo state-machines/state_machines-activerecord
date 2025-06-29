@@ -10,9 +10,9 @@ class MachineWithEventAttributesOnCustomActionTest < BaseTestCase
       end
     end
     @model = Class.new(@superclass)
-    @machine = StateMachines::Machine.new(@model, :action => :persist)
+    @machine = StateMachines::Machine.new(@model, action: :persist)
     @machine.event :ignite do
-      transition :parked => :idling
+      transition parked: :idling
     end
 
     @record = @model.new
@@ -40,4 +40,3 @@ class MachineWithEventAttributesOnCustomActionTest < BaseTestCase
     assert_equal 'idling', @record.state
   end
 end
-

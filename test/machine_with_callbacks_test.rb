@@ -5,11 +5,11 @@ require_relative 'test_helper'
 class MachineWithCallbacksTest < BaseTestCase
   def setup
     @model = new_model
-    @machine = StateMachines::Machine.new(@model, :initial => :parked)
+    @machine = StateMachines::Machine.new(@model, initial: :parked)
     @machine.other_states :idling
     @machine.event :ignite
 
-    @record = @model.new(:state => 'parked')
+    @record = @model.new(state: 'parked')
     @transition = StateMachines::Transition.new(@record, @machine, :ignite, :parked, :idling)
   end
 
@@ -81,13 +81,13 @@ class MachineWithCallbacksTest < BaseTestCase
     model = new_model do
       after_save { nil }
     end
-    machine = StateMachines::Machine.new(model, :initial => :parked)
+    machine = StateMachines::Machine.new(model, initial: :parked)
     machine.other_states :idling
     machine.event :ignite
     after_called = false
     machine.after_transition { after_called = true }
 
-    record = model.new(:state => 'parked')
+    record = model.new(state: 'parked')
     transition = StateMachines::Transition.new(record, machine, :ignite, :parked, :idling)
     transition.perform
     assert_equal true, after_called
@@ -114,17 +114,17 @@ class MachineWithCallbacksTest < BaseTestCase
   end
 
   def test_should_include_transition_states_in_known_states
-    @machine.before_transition :to => :first_gear, :do => lambda {}
+    @machine.before_transition to: :first_gear, do: -> {}
 
-    assert_equal [:parked, :idling, :first_gear], @machine.states.map { |state| state.name }
+    assert_equal(%i[parked idling first_gear], @machine.states.map { |state| state.name })
   end
 
   def test_should_allow_symbolic_callbacks
     callback_args = nil
 
-    klass = class << @record;
-      self;
-    end
+    klass = class << @record
+              self
+            end
     klass.send(:define_method, :after_ignite) do |*args|
       callback_args = args
     end
@@ -147,10 +147,10 @@ class MachineWithCallbacksTest < BaseTestCase
   end
 
   def test_should_run_in_expected_order
-    expected = [
-        :before_transition, :before_validation, :after_validation,
-        :before_save, :before_create, :after_create, :after_save,
-        :after_transition
+    expected = %i[
+      before_transition before_validation after_validation
+      before_save before_create after_create after_save
+      after_transition
     ]
 
     callbacks = []
@@ -171,4 +171,3 @@ class MachineWithCallbacksTest < BaseTestCase
     assert_equal expected, callbacks
   end
 end
-

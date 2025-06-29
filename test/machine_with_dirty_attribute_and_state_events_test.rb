@@ -5,7 +5,7 @@ require_relative 'test_helper'
 class MachineWithDirtyAttributeAndStateEventsTest < BaseTestCase
   def setup
     @model = new_model
-    @machine = StateMachines::Machine.new(@model, :initial => :parked)
+    @machine = StateMachines::Machine.new(@model, initial: :parked)
     @machine.event :ignite
 
     @record = @model.create

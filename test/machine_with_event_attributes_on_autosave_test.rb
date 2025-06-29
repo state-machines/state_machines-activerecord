@@ -14,15 +14,15 @@ class MachineWithEventAttributesOnAutosaveTest < BaseTestCase
 
     machine = StateMachines::Machine.new(@vehicle_model)
     machine.event :ignite do
-      transition :parked => :idling
+      transition parked: :idling
     end
 
     @owner = @owner_model.create
-    @vehicle = @vehicle_model.create(:state => 'parked', :owner_id => @owner.id)
+    @vehicle = @vehicle_model.create(state: 'parked', owner_id: @owner.id)
   end
 
   def test_should_persist_has_one_autosave
-    @owner_model.has_one :vehicle, :class_name => 'MachineWithEventAttributesOnAutosaveTest::Vehicle', :autosave => true
+    @owner_model.has_one :vehicle, class_name: 'MachineWithEventAttributesOnAutosaveTest::Vehicle', autosave: true
     @owner.vehicle.state_event = 'ignite'
     @owner.save
 
@@ -31,7 +31,8 @@ class MachineWithEventAttributesOnAutosaveTest < BaseTestCase
   end
 
   def test_should_persist_has_many_autosave
-    @owner_model.has_many :vehicles, :class_name => 'MachineWithEventAttributesOnAutosaveTest::Vehicle', :autosave => true
+    @owner_model.has_many :vehicles, class_name: 'MachineWithEventAttributesOnAutosaveTest::Vehicle',
+                                     autosave: true
     @owner.vehicles[0].state_event = 'ignite'
     @owner.save
 

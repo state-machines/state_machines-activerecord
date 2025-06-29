@@ -10,11 +10,18 @@ class MachineWithFailedAfterCallbacksTest < BaseTestCase
     @machine = StateMachines::Machine.new(@model)
     @machine.state :parked, :idling
     @machine.event :ignite
-    @machine.after_transition { @callbacks << :after_1; false }
+    @machine.after_transition do
+      @callbacks << :after_1
+      false
+    end
     @machine.after_transition { @callbacks << :after_2 }
-    @machine.around_transition { |block| @callbacks << :around_before; block.call; @callbacks << :around_after }
+    @machine.around_transition do |block|
+      @callbacks << :around_before
+      block.call
+      @callbacks << :around_after
+    end
 
-    @record = @model.new(:state => 'parked')
+    @record = @model.new(state: 'parked')
     @transition = StateMachines::Transition.new(@record, @machine, :ignite, :parked, :idling)
     @result = @transition.perform
   end
@@ -32,6 +39,6 @@ class MachineWithFailedAfterCallbacksTest < BaseTestCase
   end
 
   def test_should_not_run_further_after_callbacks
-    assert_equal [:around_before, :around_after, :after_1], @callbacks
+    assert_equal %i[around_before around_after after_1], @callbacks
   end
 end

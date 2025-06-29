@@ -10,12 +10,19 @@ class MachineWithFailedBeforeCallbacksTest < BaseTestCase
     @machine = StateMachines::Machine.new(@model)
     @machine.state :parked, :idling
     @machine.event :ignite
-    @machine.before_transition { @callbacks << :before_1; false }
+    @machine.before_transition do
+      @callbacks << :before_1
+      false
+    end
     @machine.before_transition { @callbacks << :before_2 }
     @machine.after_transition { @callbacks << :after }
-    @machine.around_transition { |block| @callbacks << :around_before; block.call; @callbacks << :around_after }
+    @machine.around_transition do |block|
+      @callbacks << :around_before
+      block.call
+      @callbacks << :around_after
+    end
 
-    @record = @model.new(:state => 'parked')
+    @record = @model.new(state: 'parked')
     @transition = StateMachines::Transition.new(@record, @machine, :ignite, :parked, :idling)
     @result = @transition.perform
   end

@@ -8,10 +8,10 @@ class MachineWithLoopbackTest < BaseTestCase
       connection.add_column table_name, :updated_at, :datetime
     end
 
-    @machine = StateMachines::Machine.new(@model, :initial => :parked)
+    @machine = StateMachines::Machine.new(@model, initial: :parked)
     @machine.event :park
 
-    @record = @model.create(:updated_at => Time.now - 1)
+    @record = @model.create(updated_at: Time.now - 1)
     @transition = StateMachines::Transition.new(@record, @machine, :park, :parked, :parked)
 
     @timestamp = @record.updated_at

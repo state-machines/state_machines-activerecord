@@ -7,7 +7,7 @@ class MachineWithDynamicInitialStateTest < BaseTestCase
     @model = new_model do
       attr_accessor :value
     end
-    @machine = StateMachines::Machine.new(@model, :initial => lambda { |object| :parked })
+    @machine = StateMachines::Machine.new(@model, initial: ->(_object) { :parked })
     @machine.state :parked
   end
 
@@ -17,7 +17,7 @@ class MachineWithDynamicInitialStateTest < BaseTestCase
   end
 
   def test_should_still_set_attributes
-    record = @model.new(:value => 1)
+    record = @model.new(value: 1)
     assert_equal 1, record.value
   end
 
@@ -53,17 +53,17 @@ class MachineWithDynamicInitialStateTest < BaseTestCase
       attr_accessor :state_during_setter
 
       remove_method :value=
-      define_method(:value=) do |value|
+      define_method(:value=) do |_value|
         self.state_during_setter = state || 'nil'
       end
     end
 
-    record = @model.new(:value => 1)
+    record = @model.new(value: 1)
     assert_equal 'nil', record.state_during_setter
   end
 
   def test_should_not_set_initial_state_after_already_initialized
-    record = @model.new(:value => 1)
+    record = @model.new(value: 1)
     assert_equal 'parked', record.state
 
     record.state = 'idling'
@@ -88,14 +88,14 @@ class MachineWithDynamicInitialStateTest < BaseTestCase
   def test_should_use_stored_values_when_loading_from_database
     @machine.state :idling
 
-    record = @model.find(@model.create(:state => 'idling').id)
+    record = @model.find(@model.create(state: 'idling').id)
     assert_equal 'idling', record.state
   end
 
   def test_should_use_stored_values_when_loading_from_database_with_nil_state
     @machine.state nil
 
-    record = @model.find(@model.create(:state => nil).id)
+    record = @model.find(@model.create(state: nil).id)
     assert_nil record.state
   end
 end
