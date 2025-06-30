@@ -5,4 +5,5 @@ gemspec
 
 platforms :mri do
   gem 'debug'
+  gem 'rubocop'
 end

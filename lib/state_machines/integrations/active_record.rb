@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'state_machines-activemodel'
 require 'active_record'
 require 'state_machines/integrations/active_record/version'
@@ -368,6 +370,226 @@ module StateMachines
 
       # The default options to use for state machines using this integration
       @defaults = { action: :save, use_transactions: true }
+
+      # Machine-specific methods for enum integration
+      module MachineMethods
+        # Enum integration metadata storage
+        attr_accessor :enum_integration
+
+        # Hook called after machine initialization
+        def after_initialize
+          super
+          initialize_enum_integration
+        end
+
+        # Check if enum integration should be enabled for this machine
+        def detect_enum_integration
+          return nil unless owner_class.defined_enums.key?(attribute.to_s)
+
+          # For now, auto-detect enum and enable basic integration
+          # Later we can add explicit configuration options
+          {
+            enabled: true,
+            prefix: true,
+            suffix: false,
+            validate: true,
+            scopes: true,
+            enum_values: owner_class.defined_enums[attribute.to_s] || {},
+            original_enum_methods: detect_existing_enum_methods,
+            state_machine_methods: []
+          }
+        end
+
+        # Initialize enum integration if enum is detected
+        def initialize_enum_integration
+          detected_config = detect_enum_integration
+          return unless detected_config
+
+          # Store enum integration metadata
+          self.enum_integration = detected_config
+        end
+
+        # Override state method to trigger method generation after states are defined
+        def state(*, &)
+          result = super
+
+          # Generate methods after each state addition if enum integration is enabled
+          generate_state_machine_methods if enum_integrated? && !@methods_generated
+
+          result
+        end
+
+        # Check if this machine has enum integration enabled
+        def enum_integrated?
+          enum_integration && enum_integration[:enabled]
+        end
+
+        # Get the enum mapping for this attribute
+        def enum_mapping
+          return {} unless enum_integrated?
+
+          enum_integration[:enum_values] || {}
+        end
+
+        # Get list of original enum methods that were preserved
+        def original_enum_methods
+          return [] unless enum_integrated?
+
+          enum_integration[:original_enum_methods] || []
+        end
+
+        # Get list of state machine methods that were generated
+        def state_machine_methods
+          return [] unless enum_integrated?
+
+          enum_integration[:state_machine_methods] || []
+        end
+
+        private
+
+        # Detect existing enum methods for this attribute
+        def detect_existing_enum_methods
+          return [] unless owner_class.defined_enums.key?(attribute.to_s)
+
+          enum_values = owner_class.defined_enums[attribute.to_s]
+          methods = []
+
+          enum_values.each_key do |value|
+            # Predicate methods like 'active?'
+            predicate = "#{value}?"
+            methods << predicate if owner_class.method_defined?(predicate)
+
+            # Bang methods like 'active!'
+            bang_method = "#{value}!"
+            methods << bang_method if owner_class.method_defined?(bang_method)
+
+            # Scope methods (class-level)
+            methods << value.to_s if owner_class.respond_to?(value)
+            methods << "not_#{value}" if owner_class.respond_to?("not_#{value}")
+          end
+
+          methods
+        end
+
+        # Generate method name with prefix/suffix based on configuration
+        def generate_state_method_name(state_name, method_type)
+          return state_name unless enum_integrated?
+
+          config = enum_integration
+          base_name = case method_type
+                      when :predicate
+                        "#{state_name}?"
+                      when :bang
+                        "#{state_name}!"
+                      else
+                        state_name.to_s
+                      end
+
+          # Apply prefix
+          if config[:prefix]
+            prefix = config[:prefix] == true ? "#{attribute}_" : "#{config[:prefix]}_"
+            base_name = "#{prefix}#{base_name}"
+          end
+
+          # Apply suffix
+          if config[:suffix]
+            suffix = config[:suffix] == true ? "_#{attribute}" : "_#{config[:suffix]}"
+            base_name = base_name.gsub(/(\?|!)$/, "#{suffix}\\1")
+            base_name = "#{base_name}#{suffix}" unless base_name.end_with?('?', '!')
+          end
+
+          base_name
+        end
+
+        # Generate state machine methods with conflict resolution
+        def generate_state_machine_methods
+          return unless enum_integrated?
+          return if @methods_generated
+
+          # Clear any previously tracked methods
+          enum_integration[:state_machine_methods] = []
+
+          # Get all states for this machine
+          states.each do |state|
+            state_name = state.name.to_s
+            next if state_name == 'nil' # Skip nil state
+
+            # Generate predicate method (e.g., status_pending?)
+            predicate_method = generate_state_method_name(state_name, :predicate)
+            if predicate_method != "#{state_name}?"
+              define_state_predicate_method(state_name, predicate_method)
+              track_generated_method(predicate_method)
+            end
+
+            # Generate bang method (e.g., status_pending!)
+            bang_method = generate_state_method_name(state_name, :bang)
+            if bang_method != "#{state_name}!"
+              define_state_bang_method(state_name, bang_method)
+              track_generated_method(bang_method)
+            end
+
+            # Generate scope methods (e.g., status_pending)
+            scope_method = generate_state_method_name(state_name, :scope)
+            if scope_method != state_name
+              define_state_scope_method(state_name, scope_method)
+              track_generated_method(scope_method)
+            end
+          end
+
+          @methods_generated = true
+        end
+
+        # Define a prefixed predicate method for a state
+        def define_state_predicate_method(state_name, method_name)
+          machine_attribute = attribute
+          target_state_name = state_name.to_sym
+          owner_class.define_method(method_name) do
+            machine = self.class.state_machine(machine_attribute)
+            machine.states.matches?(self, target_state_name)
+          end
+        end
+
+        # Define a prefixed bang method for a state
+        def define_state_bang_method(state_name, method_name)
+          attribute
+          state_name.to_sym
+          owner_class.define_method(method_name) do
+            # For now, raise a simple runtime error
+            # This is mainly for conflict resolution, not full functionality
+            raise "#{method_name} is not implemented - this is a conflict-resolution method"
+          end
+        end
+
+        # Define a prefixed scope method for a state
+        def define_state_scope_method(state_name, method_name)
+          machine_attribute = attribute
+          scope_lambda = lambda do |value = true|
+            machine = state_machine(machine_attribute)
+            state_value = machine.states[state_name.to_sym].value
+            if value
+              where(machine_attribute => state_value)
+            else
+              where.not(machine_attribute => state_value)
+            end
+          end
+
+          owner_class.define_singleton_method(method_name, &scope_lambda)
+          owner_class.define_singleton_method("not_#{method_name}") do
+            public_send(method_name, false)
+          end
+        end
+
+        # Track generated state machine methods for introspection
+        def track_generated_method(method_name)
+          return unless enum_integrated?
+
+          enum_integration[:state_machine_methods] << method_name
+        end
+      end
+
+      # Include MachineMethods to make enum integration methods available on machine instances
+      include MachineMethods
+
       class << self
         # Classes that inherit from ActiveRecord::Base will automatically use
         # the ActiveRecord integration.
@@ -433,7 +655,7 @@ module StateMachines
 
       # Creates a scope for finding records *with* a particular state or
       # states for the attribute
-      def create_with_scope(name)
+      def create_with_scope(_name)
         attr_name = attribute
         lambda do |klass, values|
           if values.present?
@@ -446,7 +668,7 @@ module StateMachines
 
       # Creates a scope for finding records *without* a particular state or
       # states for the attribute
-      def create_without_scope(name)
+      def create_without_scope(_name)
         attr_name = attribute
         lambda do |klass, values|
           if values.present?
@@ -457,14 +679,13 @@ module StateMachines
         end
       end
 
-
       # Runs a new database transaction, rolling back any changes by raising
       # an ActiveRecord::Rollback exception if the yielded block fails
       # (i.e. returns false).
       def transaction(object)
         result = nil
         object.class.transaction do
-          raise ::ActiveRecord::Rollback unless result = yield
+          raise ::ActiveRecord::Rollback unless (result = yield)
         end
         result
       end
@@ -474,7 +695,6 @@ module StateMachines
       end
 
       private
-
 
       # Generates the results for the given scope based on one or more states to filter by
       def run_scope(scope, machine, klass, states)
