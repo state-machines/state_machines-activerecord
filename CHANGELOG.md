@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.31.0](https://github.com/state-machines/state_machines-activerecord/compare/state_machines-activerecord/v0.10.0...state_machines-activerecord/v0.31.0) (2025-06-30)
+
+
+### Features
+
+* Add transparent scope support (cherry-pick PR [#98](https://github.com/state-machines/state_machines-activerecord/issues/98)) ([5eef308](https://github.com/state-machines/state_machines-activerecord/commit/5eef30895e75840d0817166f1c36969f472ecaa0))
+
+
+### Bug Fixes
+
+* update I18n lambdas and apply RuboCop corrections ([#117](https://github.com/state-machines/state_machines-activerecord/issues/117)) ([4b739d4](https://github.com/state-machines/state_machines-activerecord/commit/4b739d4b69ebbef581ee6086457267fcf86bd922))
+
 ## [0.10.0](https://github.com/state-machines/state_machines-activerecord/compare/state_machines-activerecord-v0.9.0...state_machines-activerecord/v0.10.0) (2025-06-12)
 
 
