@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.40.0](https://github.com/state-machines/state_machines-activerecord/compare/state_machines-activerecord/v0.31.0...state_machines-activerecord/v0.40.0) (2025-06-30)
+
+
+### Features
+
+* Drop Rails 7.1 support and require Rails 7.2+ ([#120](https://github.com/state-machines/state_machines-activerecord/issues/120)) ([e3df786](https://github.com/state-machines/state_machines-activerecord/commit/e3df786d27ff58937c705d9a5ee54ba6c2e26394)), closes [#57](https://github.com/state-machines/state_machines-activerecord/issues/57)
+
 ## [0.31.0](https://github.com/state-machines/state_machines-activerecord/compare/state_machines-activerecord/v0.10.0...state_machines-activerecord/v0.31.0) (2025-06-30)
 
 
