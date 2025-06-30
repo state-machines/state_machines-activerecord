@@ -3,7 +3,12 @@
 require 'debug' if RUBY_ENGINE == 'ruby'
 require 'minitest/reporters'
 Minitest::Reporters.use!(Minitest::Reporters::SpecReporter.new)
+
+# Ensure our local lib directory is loaded first
+$LOAD_PATH.unshift File.expand_path('../lib', __dir__)
+
 require 'state_machines-activerecord'
+require 'state_machines/test_helper'
 require 'minitest/autorun'
 require 'securerandom'
 
@@ -13,6 +18,7 @@ ActiveRecord::Base.logger = Logger.new("#{File.dirname(__FILE__)}/../log/active_
 ActiveSupport.test_order = :random
 
 class BaseTestCase < ActiveSupport::TestCase
+  include StateMachines::TestHelper
   protected
 
   # Creates a new ActiveRecord model (and the associated table)
@@ -32,7 +38,7 @@ class BaseTestCase < ActiveSupport::TestCase
       class << self
         self
       end).class_eval do
-        define_method(:name) { "#{name.to_s.capitalize}" }
+        define_method(:name) { name.to_s.capitalize.to_s }
       end
     end
     model.class_eval(&) if block_given?
