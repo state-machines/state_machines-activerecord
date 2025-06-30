@@ -2,8 +2,13 @@
 
 # StateMachines Active Record Integration
 
-The Active Record 5.1+ integration adds support for database transactions, automatically
+The Active Record 7.2+ integration adds support for database transactions, automatically
 saving the record, named scopes, validation errors.
+
+## Requirements
+
+- Ruby 3.2+
+- Rails 7.2+
 
 ## Installation
 
