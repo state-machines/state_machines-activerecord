@@ -434,20 +434,29 @@ module StateMachines
       # Creates a scope for finding records *with* a particular state or
       # states for the attribute
       def create_with_scope(name)
-        create_scope(name, ->(values) { ["#{attribute_column} IN (?)", values] })
+        attr_name = attribute
+        lambda do |klass, values|
+          if values.present?
+            klass.where(attr_name => values)
+          else
+            klass.all
+          end
+        end
       end
 
       # Creates a scope for finding records *without* a particular state or
       # states for the attribute
       def create_without_scope(name)
-        create_scope(name, ->(values) { ["#{attribute_column} NOT IN (?)", values] })
+        attr_name = attribute
+        lambda do |klass, values|
+          if values.present?
+            klass.where.not(attr_name => values)
+          else
+            klass.all
+          end
+        end
       end
 
-      # Generates the fully-qualifed column name for this machine's attribute
-      def attribute_column
-        connection = owner_class.connection
-        "#{connection.quote_table_name(owner_class.table_name)}.#{connection.quote_column_name(attribute)}"
-      end
 
       # Runs a new database transaction, rolling back any changes by raising
       # an ActiveRecord::Rollback exception if the yielded block fails
@@ -466,10 +475,6 @@ module StateMachines
 
       private
 
-      # Defines a new scope with the given name
-      def create_scope(_name, scope)
-        ->(model, values) { values.present? ? model.where(scope.call(values)) : model.all }
-      end
 
       # Generates the results for the given scope based on one or more states to filter by
       def run_scope(scope, machine, klass, states)

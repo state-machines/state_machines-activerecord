@@ -14,7 +14,6 @@ jobs:
       matrix:
         ruby-version: ['3.2', '3.3', '3.4']
         gemfiles:
-          - gemfiles/active_record_7.1.gemfile
           - gemfiles/active_record_7.2.gemfile
           - gemfiles/active_record_8.0.gemfile
           - gemfiles/active_record_edge.gemfile

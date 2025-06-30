@@ -1,11 +1,5 @@
 # frozen_string_literal: true
 
-appraise 'active_record_7.1' do
-  gem 'sqlite3', platforms: %i[mri rbx]
-  gem 'activerecord-jdbcsqlite3-adapter', platform: %i[jruby truffleruby]
-  gem 'activerecord', '~> 7.1.3'
-end
-
 appraise 'active_record_7.2' do
   gem 'sqlite3', platforms: %i[mri rbx]
   gem 'activerecord-jdbcsqlite3-adapter', platform: %i[jruby truffleruby]
