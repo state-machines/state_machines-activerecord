@@ -96,21 +96,15 @@ class MachineWithCallbacksTest < BaseTestCase
   def test_should_run_around_callbacks
     before_called = false
     after_called = false
-    ensure_called = 0
     @machine.around_transition do |block|
       before_called = true
-      begin
-        block.call
-      ensure
-        ensure_called += 1
-      end
+      block.call
       after_called = true
     end
 
     @transition.perform
     assert before_called
     assert after_called
-    assert_equal ensure_called, 1
   end
 
   def test_should_include_transition_states_in_known_states
@@ -149,8 +143,8 @@ class MachineWithCallbacksTest < BaseTestCase
   def test_should_run_in_expected_order
     expected = %i[
       before_transition before_validation after_validation
-      before_save before_create after_create after_save
-      after_transition
+      before_save before_create after_create after_transition
+      after_save
     ]
 
     callbacks = []

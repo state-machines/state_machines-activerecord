@@ -22,6 +22,6 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency 'minitest', '>= 5.4.0'
   spec.add_development_dependency 'minitest-reporters'
   spec.add_development_dependency 'rake', '~> 13.0'
-  spec.add_development_dependency 'sqlite3', '~> 1.3'
+  spec.add_development_dependency 'sqlite3', '~> 2.0'
   spec.metadata['rubygems_mfa_required'] = 'true'
 end
