@@ -3,6 +3,7 @@
 require 'state_machines-activemodel'
 require 'active_record'
 require 'state_machines/integrations/active_record/version'
+require 'set'
 
 module StateMachines
   module Integrations # :nodoc:
@@ -413,8 +414,11 @@ module StateMachines
         def state(*, &)
           result = super
 
+          # Reset the flag to ensure method generation runs for all states
+          @methods_generated = false if enum_integrated?
+
           # Generate methods after each state addition if enum integration is enabled
-          generate_state_machine_methods if enum_integrated? && !@methods_generated
+          generate_state_machine_methods if enum_integrated?
 
           result
         end
@@ -504,15 +508,16 @@ module StateMachines
         # Generate state machine methods with conflict resolution
         def generate_state_machine_methods
           return unless enum_integrated?
-          return if @methods_generated
 
-          # Clear any previously tracked methods
-          enum_integration[:state_machine_methods] = []
+          # Initialize tracking if not already done
+          @processed_states ||= Set.new
+          enum_integration[:state_machine_methods] ||= []
 
           # Get all states for this machine
           states.each do |state|
             state_name = state.name.to_s
             next if state_name == 'nil' # Skip nil state
+            next if @processed_states.include?(state_name) # Skip already processed states
 
             # Generate predicate method (e.g., status_pending?)
             predicate_method = generate_state_method_name(state_name, :predicate)
@@ -534,6 +539,9 @@ module StateMachines
               define_state_scope_method(state_name, scope_method)
               track_generated_method(scope_method)
             end
+
+            # Mark this state as processed
+            @processed_states.add(state_name)
           end
 
           @methods_generated = true
@@ -551,8 +559,6 @@ module StateMachines
 
         # Define a prefixed bang method for a state
         def define_state_bang_method(state_name, method_name)
-          attribute
-          state_name.to_sym
           owner_class.define_method(method_name) do
             # For now, raise a simple runtime error
             # This is mainly for conflict resolution, not full functionality
