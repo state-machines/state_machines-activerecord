@@ -38,7 +38,7 @@ class BaseTestCase < ActiveSupport::TestCase
       class << self
         self
       end).class_eval do
-        define_method(:name) { name.to_s.capitalize.to_s }
+        define_method(:name) { name.to_s.capitalize }
       end
     end
     model.class_eval(&) if block_given?

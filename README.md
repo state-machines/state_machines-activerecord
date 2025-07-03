@@ -170,6 +170,15 @@ machine.state_machine_methods
 - The state machine attribute must match an existing Rails enum attribute
 - Auto-detection is enabled by default when this condition is met
 
+### Configuration Options
+
+The enum integration supports several configuration options:
+
+- `prefix` (default: true) - Adds a prefix to generated methods to avoid conflicts
+- `suffix` (default: false) - Alternative naming strategy using suffixes instead of prefixes
+- `validate` (default: true) - Controls whether enum validation is integrated with state machine validations
+- `scopes` (default: true) - Controls whether state machine scopes are generated
+
 ## State driven validations
 
 As mentioned in `StateMachines::Machine#state`, you can define behaviors,
