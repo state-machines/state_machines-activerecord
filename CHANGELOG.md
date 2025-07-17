@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.100.0](https://github.com/state-machines/state_machines-activerecord/compare/state_machines-activerecord/v0.40.0...state_machines-activerecord/v0.100.0) (2025-07-17)
+
+
+### Bug Fixes
+
+* prevent fiber deadlocks with Ruby 3.4+ and Rails 8 ([#123](https://github.com/state-machines/state_machines-activerecord/issues/123)) ([507bdf0](https://github.com/state-machines/state_machines-activerecord/commit/507bdf0064a9e2fdd97f8915d40a7c961b6e884b))
+
 ## [0.40.0](https://github.com/state-machines/state_machines-activerecord/compare/state_machines-activerecord/v0.31.0...state_machines-activerecord/v0.40.0) (2025-06-30)
 
 
