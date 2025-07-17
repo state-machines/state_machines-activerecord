@@ -77,7 +77,108 @@ Vehicle.with_state(params[:state])                 # Returns all vehicles if par
 Vehicle.where(color: 'red').with_state(nil)        # Returns all red vehicles (chainable)
 ```
 
-### State driven validations
+## Rails Enum Integration
+
+When your ActiveRecord model uses Rails enums and defines a state machine on the same attribute, this gem automatically detects the conflict and provides seamless integration. This prevents method name collisions between Rails enum methods and state machine methods.
+
+### Auto-Detection and Conflict Resolution
+
+```ruby
+class Order < ApplicationRecord
+  # Rails enum definition
+  enum :status, { pending: 0, processing: 1, completed: 2, cancelled: 3 }
+  
+  # State machine on the same attribute
+  state_machine :status do
+    state :pending, :processing, :completed, :cancelled
+    
+    event :process do
+      transition pending: :processing
+    end
+    
+    event :complete do
+      transition processing: :completed
+    end
+    
+    event :cancel do
+      transition [:pending, :processing] => :cancelled
+    end
+  end
+end
+```
+
+When enum integration is detected, the gem automatically:
+- Preserves original Rails enum methods (`pending?`, `processing?`, etc.)
+- Generates prefixed state machine methods to avoid conflicts (`status_pending?`, `status_processing?`, etc.)
+- Creates prefixed scope methods (`Order.status_pending`, `Order.status_processing`, etc.)
+
+### Available Methods
+
+**Original Rails enum methods (preserved):**
+```ruby
+order = Order.create(status: :pending)
+order.pending?        # => true (Rails enum method)
+order.processing?     # => false (Rails enum method)
+order.processing!     # Sets status to :processing (Rails enum method)
+
+Order.pending         # Rails enum scope
+Order.processing      # Rails enum scope
+```
+
+**Generated state machine methods (prefixed):**
+```ruby
+# Predicate methods
+order.status_pending?     # => true (state machine method)
+order.status_processing?  # => false (state machine method)
+order.status_completed?   # => false (state machine method)
+
+# Bang methods (for conflict resolution only)
+# These are placeholders and raise runtime errors
+order.status_processing!  # => raises RuntimeError
+
+# Scope methods  
+Order.status_pending      # State machine scope
+Order.status_processing   # State machine scope
+Order.not_status_pending  # Negative state machine scope
+```
+
+### Introspection API
+
+The integration provides a comprehensive introspection API for advanced use cases:
+
+```ruby
+machine = Order.state_machine(:status)
+
+# Check if enum integration is enabled
+machine.enum_integrated?  # => true
+
+# Get the Rails enum mapping
+machine.enum_mapping     # => {"pending"=>0, "processing"=>1, "completed"=>2, "cancelled"=>3}
+
+# Get original Rails enum methods that were preserved
+machine.original_enum_methods
+# => ["pending?", "processing?", "completed?", "cancelled?", "pending!", "processing!", ...]
+
+# Get state machine methods that were generated
+machine.state_machine_methods  
+# => ["status_pending?", "status_processing?", "status_completed?", "status_cancelled?", ...]
+```
+
+
+### Requirements for Enum Integration
+
+- The state machine attribute must match an existing Rails enum attribute
+- Auto-detection is enabled by default when this condition is met
+
+### Configuration Options
+
+The enum integration supports several configuration options:
+
+- `prefix` (default: true) - Adds a prefix to generated methods to avoid conflicts
+- `suffix` (default: false) - Alternative naming strategy using suffixes instead of prefixes
+- `scopes` (default: true) - Controls whether state machine scopes are generated
+
+## State driven validations
 
 As mentioned in `StateMachines::Machine#state`, you can define behaviors,
 like validations, that only execute for certain states. One *important*
