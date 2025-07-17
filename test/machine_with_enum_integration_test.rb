@@ -25,9 +25,9 @@ class MachineWithEnumIntegrationTest < BaseTestCase
     assert @machine.respond_to?(:enum_integrated?), 'Machine should respond to enum_integrated?'
     assert @machine.enum_integrated?
     assert_equal({ 'pending' => 0, 'processing' => 1, 'completed' => 2, 'failed' => 3 }, @machine.enum_mapping)
-    
+
     # Test that states are properly defined using shared assertions
-    assert_sm_states_list(@machine, [:pending, :processing, :completed, :failed])
+    assert_sm_states_list(@machine, %i[pending processing completed failed])
   end
 
   test 'should not auto detect when no enum exists' do
@@ -38,7 +38,7 @@ class MachineWithEnumIntegrationTest < BaseTestCase
 
     assert_not machine.enum_integrated?
     # Test that states are still properly defined even without enum integration
-    assert_sm_states_list(machine, [:pending, :processing, :completed, :failed])
+    assert_sm_states_list(machine, %i[pending processing completed failed])
   end
 
   test 'should detect existing enum methods' do
@@ -71,7 +71,6 @@ class MachineWithEnumIntegrationTest < BaseTestCase
     config = machine.enum_integration
     assert_equal true, config[:prefix]
     assert_equal false, config[:suffix]
-    assert_equal true, config[:validate]
     assert_equal true, config[:scopes]
   end
 

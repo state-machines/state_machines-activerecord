@@ -3,7 +3,6 @@
 require 'state_machines-activemodel'
 require 'active_record'
 require 'state_machines/integrations/active_record/version'
-require 'set'
 
 module StateMachines
   module Integrations # :nodoc:
@@ -197,7 +196,8 @@ module StateMachines
     # example, assuming there's a validation on a field called +name+ on the class:
     #
     #   vehicle = Vehicle.new
-    #   vehicle.ignite!       # => StateMachines::InvalidTransition: Cannot transition state via :ignite from :parked (Reason(s): Name cannot be blank)
+    #   vehicle.ignite!       # => StateMachines::InvalidTransition: Cannot transition state via :ignite from :parked
+    #                              # (Reason(s): Name cannot be blank)
     #
     # == Scopes
     #
@@ -393,7 +393,6 @@ module StateMachines
             enabled: true,
             prefix: true,
             suffix: false,
-            validate: true,
             scopes: true,
             enum_values: owner_class.defined_enums[attribute.to_s] || {},
             original_enum_methods: detect_existing_enum_methods,
@@ -413,9 +412,6 @@ module StateMachines
         # Override state method to trigger method generation after states are defined
         def state(*, &)
           result = super
-
-          # Reset the flag to ensure method generation runs for all states
-          @methods_generated = false if enum_integrated?
 
           # Generate methods after each state addition if enum integration is enabled
           generate_state_machine_methods if enum_integrated?
@@ -516,7 +512,7 @@ module StateMachines
           # Get all states for this machine
           states.each do |state|
             state_name = state.name.to_s
-            next if state_name == 'nil' # Skip nil state
+            next if state.nil? # Skip nil state
             next if @processed_states.include?(state_name) # Skip already processed states
 
             # Generate predicate method (e.g., status_pending?)
@@ -533,18 +529,18 @@ module StateMachines
               track_generated_method(bang_method)
             end
 
-            # Generate scope methods (e.g., status_pending)
-            scope_method = generate_state_method_name(state_name, :scope)
-            if scope_method != state_name
-              define_state_scope_method(state_name, scope_method)
-              track_generated_method(scope_method)
+            # Generate scope methods (e.g., status_pending) if scopes are enabled
+            if enum_integration[:scopes]
+              scope_method = generate_state_method_name(state_name, :scope)
+              if scope_method != state_name
+                define_state_scope_method(state_name, scope_method)
+                track_generated_method(scope_method)
+              end
             end
 
             # Mark this state as processed
             @processed_states.add(state_name)
           end
-
-          @methods_generated = true
         end
 
         # Define a prefixed predicate method for a state
@@ -560,9 +556,9 @@ module StateMachines
         # Define a prefixed bang method for a state
         def define_state_bang_method(state_name, method_name)
           owner_class.define_method(method_name) do
-            # For now, raise a simple runtime error
-            # This is mainly for conflict resolution, not full functionality
-            raise "#{method_name} is not implemented - this is a conflict-resolution method"
+            # Raise an error with actionable guidance
+            raise "#{method_name} is a conflict-resolution placeholder. " \
+                  "Use the original enum method '#{state_name}!' or state machine events instead."
           end
         end
 
@@ -588,6 +584,10 @@ module StateMachines
         # Track generated state machine methods for introspection
         def track_generated_method(method_name)
           return unless enum_integrated?
+
+          # Use a Set to ensure no duplicates
+          enum_integration[:state_machine_methods] ||= []
+          return if enum_integration[:state_machine_methods].include?(method_name)
 
           enum_integration[:state_machine_methods] << method_name
         end
