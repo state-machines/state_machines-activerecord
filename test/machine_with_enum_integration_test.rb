@@ -9,7 +9,10 @@ class MachineWithEnumIntegrationTest < BaseTestCase
 
     @model = new_model do
       connection.add_column table_name, :status, :integer, default: 0
+      connection.add_column table_name, :approval_status, :string
+
       enum :status, { pending: 0, processing: 1, completed: 2, failed: 3 }
+      enum :approval_status, { draft: 'draft', submitted: 'submitted', approved: 'approved', rejected: 'rejected' }
     end
   end
 
@@ -192,5 +195,39 @@ class MachineWithEnumIntegrationTest < BaseTestCase
     assert_includes generated_methods, 'status_processing'
     assert_includes generated_methods, 'status_completed'
     assert_includes generated_methods, 'status_failed'
+  end
+
+  test 'should support string enums with string column' do
+    # The approval_status field and enum are already defined in setup
+    machine = @model.state_machine(:approval_status) do
+      state :draft, :submitted, :approved, :rejected
+    end
+
+    # Test enum integration detection
+    assert machine.enum_integrated?
+    assert_equal(
+      { 'draft' => 'draft', 'submitted' => 'submitted', 'approved' => 'approved',
+        'rejected' => 'rejected' }, machine.enum_mapping
+    )
+
+    # Test that states are properly defined
+    assert_sm_states_list(machine, %i[draft submitted approved rejected])
+
+    # Test record creation and state persistence
+    record = @model.create(status: 0, approval_status: 'draft')
+    assert_sm_state(record, :draft, machine_name: :approval_status)
+    assert_sm_state_persisted(record, 'draft', :approval_status)
+
+    # Test predicate methods work
+    assert record.draft?
+    assert_not record.submitted?
+
+    # Test prefixed methods are generated
+    assert record.respond_to?(:approval_status_draft?)
+    assert record.approval_status_draft?
+
+    # Verify both enums work on the same model
+    assert record.pending?  # integer enum on status field
+    assert record.draft?    # string enum on approval_status field
   end
 end
