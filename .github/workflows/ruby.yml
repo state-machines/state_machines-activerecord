@@ -16,10 +16,7 @@ jobs:
         gemfiles:
           - gemfiles/active_record_7.2.gemfile
           - gemfiles/active_record_8.0.gemfile
-          - gemfiles/active_record_edge.gemfile
-        exclude:
-          - ruby-version: '3.0'
-            gemfiles: gemfiles/active_record_edge.gemfile
+          - gemfiles/active_record_8.1.gemfile
     env:
       BUNDLE_GEMFILE: ${{ github.workspace }}/${{ matrix.gemfiles }}
     steps:
