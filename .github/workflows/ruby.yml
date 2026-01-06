@@ -12,7 +12,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ruby-version: ['3.2', '3.3', '3.4']
+        ruby-version: ['3.4', '4.0']
         gemfiles:
           - gemfiles/active_record_7.2.gemfile
           - gemfiles/active_record_8.0.gemfile
