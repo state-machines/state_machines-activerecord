@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.102.0](https://github.com/state-machines/state_machines-activerecord/compare/state_machines-activerecord/v0.100.0...state_machines-activerecord/v0.102.0) (2026-03-22)
+
+
+### Features
+
+* Add Rails enum integration with automatic conflict resolution ([#122](https://github.com/state-machines/state_machines-activerecord/issues/122)) ([08c7650](https://github.com/state-machines/state_machines-activerecord/commit/08c765029c02cd9c83768172279ee8a78b641f7e))
+* transparent integer column support via custom AR attribute type ([6efa970](https://github.com/state-machines/state_machines-activerecord/commit/6efa970badf3ae2685042f1a4d752192aa2f74b6))
+
+
+### Bug Fixes
+
+* bump state_machines-activemodel to &gt;= 0.102.0 ([2f99c90](https://github.com/state-machines/state_machines-activerecord/commit/2f99c90e9f4f6ef158b0e195b930d9eb3167bb66))
+* bump state_machines-activemodel to 0.101.0 and test Rails 8.1.0 ([#128](https://github.com/state-machines/state_machines-activerecord/issues/128)) ([8794d30](https://github.com/state-machines/state_machines-activerecord/commit/8794d30cd0abee26b9b0f6d4eabd5cb95f409c59))
+* remove bump-patch-for-minor-pre-major ([215ccb2](https://github.com/state-machines/state_machines-activerecord/commit/215ccb271e63eeaa46de640b3eb001dc69747d8e))
+
 ## [0.100.0](https://github.com/state-machines/state_machines-activerecord/compare/state_machines-activerecord/v0.100.0...state_machines-activerecord/v0.100.0) (2025-07-17)
 
 
