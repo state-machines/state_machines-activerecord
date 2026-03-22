@@ -3,6 +3,7 @@
 require 'state_machines-activemodel'
 require 'active_record'
 require 'state_machines/integrations/active_record/version'
+require 'state_machines/integrations/active_record/type/integer'
 
 module StateMachines
   module Integrations # :nodoc:
@@ -381,6 +382,7 @@ module StateMachines
         def after_initialize
           super
           initialize_enum_integration
+          register_integer_type if integer_column? && !enum_integrated?
         end
 
         # Check if enum integration should be enabled for this machine
@@ -446,6 +448,25 @@ module StateMachines
         end
 
         private
+
+        # Returns true when the state machine attribute is backed by an integer column
+        def integer_column?
+          return false unless owner_class.respond_to?(:type_for_attribute)
+          return false unless owner_class.connected? && owner_class.table_exists?
+
+          owner_class.type_for_attribute(attribute.to_s).type == :integer
+        rescue ::ActiveRecord::StatementInvalid, ::ActiveRecord::ConnectionNotEstablished
+          false
+        end
+
+        # Registers a custom AR attribute type so that integer columns transparently
+        # convert between state name strings and stored integers.
+        # Saves the raw column default first so the conflicting-default check
+        # (which fires later, during initial_state=) still compares raw integers.
+        def register_integer_type
+          @raw_integer_column_default = owner_class.column_defaults[attribute.to_s]
+          owner_class.attribute(attribute.to_s, StateMachines::Type::Integer.new(states))
+        end
 
         # Detect existing enum methods for this attribute
         def detect_existing_enum_methods
@@ -611,8 +632,11 @@ module StateMachines
         action == :save
       end
 
-      # Gets the db default for the machine's attribute
+      # Gets the db default for the machine's attribute.
+      # For integer columns the raw pre-type-registration default is returned so
+      # that check_conflicting_attribute_default can compare integers to integers.
       def owner_class_attribute_default
+        return @raw_integer_column_default if defined?(@raw_integer_column_default)
         return unless owner_class.connected? && owner_class.table_exists?
 
         owner_class.column_defaults[attribute.to_s]

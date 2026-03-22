@@ -17,7 +17,7 @@ class MachineWithDifferentIntegerColumnDefaultTest < BaseTestCase
   end
 
   def test_should_use_machine_default
-    assert_equal 1, @record.status
+    assert_equal 'parked', @record.status
   end
 
   def test_should_generate_a_warning
