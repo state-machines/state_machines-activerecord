@@ -447,7 +447,38 @@ module StateMachines
           enum_integration[:state_machine_methods] || []
         end
 
+        def integer_type_registered?
+          !!@integer_type_registered
+        end
+
+        # Machine internals (state matching, validations) call read() to get the
+        # current state value and compare it against state.value.  Only override
+        # when states have explicit integer values (e.g. state :pending, value: 0).
+        # In that case the custom type returns a state name string but machine
+        # internals need the raw integer for value-based lookup.
+        #
+        # For auto-indexed states (no explicit value), state.value is the string
+        # name so super() returns the right thing already.
+        def read(object, attr_sym, ivar = false)
+          return super unless integer_type_registered? && attr_sym == :state
+          return super unless states_with_explicit_integer_values?
+
+          raw = object.read_attribute_before_type_cast(attribute.to_s)
+          if raw.is_a?(::String) || raw.is_a?(::Symbol)
+            matched = states.detect { |s| s.name && s.name.to_s == raw.to_s }
+            return matched ? matched.value : raw
+          end
+          raw
+        end
+
         private
+
+        # Returns true when at least one named state has an explicit integer value.
+        # Used to decide whether read() needs to return raw integers for machine
+        # internals rather than relying on the custom type's string representation.
+        def states_with_explicit_integer_values?
+          states.any? { |s| s.name && s.value.is_a?(::Integer) }
+        end
 
         # Returns true when the state machine attribute is backed by an integer column
         def integer_column?
@@ -465,6 +496,7 @@ module StateMachines
         # (which fires later, during initial_state=) still compares raw integers.
         def register_integer_type
           @raw_integer_column_default = owner_class.column_defaults[attribute.to_s]
+          @integer_type_registered = true
           owner_class.attribute(attribute.to_s, StateMachines::Type::Integer.new(states))
         end
 
