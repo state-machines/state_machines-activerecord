@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.103.0](https://github.com/state-machines/state_machines-activerecord/compare/state_machines-activerecord/v0.102.0...state_machines-activerecord/v0.103.0) (2026-03-23)
+
+
+### Features
+
+* support integer columns for state machine attributes ([452edec](https://github.com/state-machines/state_machines-activerecord/commit/452edec8d23e7f9d5546e95df8c2b3ab237c5b70))
+
 ## [0.102.0](https://github.com/state-machines/state_machines-activerecord/compare/state_machines-activerecord/v0.100.0...state_machines-activerecord/v0.102.0) (2026-03-22)
 
 
