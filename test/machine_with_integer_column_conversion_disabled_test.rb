@@ -42,8 +42,19 @@ class MachineWithIntegerColumnConversionDisabledTest < BaseTestCase
     assert_equal 0, @record.status
   end
 
+  def test_machine_read_uses_raw_integer_value
+    assert_equal 0, @machine.read(@record, :state)
+  end
+
   def test_status_name_returns_symbol
     assert_equal :pending, @record.status_name
+  end
+
+  def test_should_not_convert_state_name_assignment
+    @record.status = :approved
+
+    assert_nil @record.status
+    assert_equal :approved, @record.status_before_type_cast
   end
 
   def test_transition_fires_correctly_with_raw_integer_values
@@ -73,6 +84,15 @@ class MachineWithIntegerColumnConversionDisabledTest < BaseTestCase
 
   def test_plural_scope_uses_raw_integer_relation_condition
     assert_equal({ 'status' => [0, 2] }, @model.with_statuses(:pending, :declined).where_values_hash)
+  end
+
+  def test_without_scope_excludes_records_using_raw_integer_values
+    approved = @model.new
+    approved.save!
+    approved.approve!
+
+    assert_includes @model.without_status(:approved), @record
+    refute_includes @model.without_status(:approved), approved
   end
 
   def test_scope_on_custom_integer_attribute_uses_raw_integer_relation_condition
