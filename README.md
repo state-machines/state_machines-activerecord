@@ -166,7 +166,7 @@ machine.state_machine_methods
 
 ## Integer-backed state attributes
 
-Integer columns are converted transparently by default: application code reads
+Integer columns are converted transparently by default, application code reads
 state names while the database stores integers.
 
 ```ruby
