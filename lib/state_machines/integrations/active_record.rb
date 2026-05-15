@@ -383,9 +383,8 @@ module StateMachines
         def after_initialize
           super
           initialize_enum_integration
-          if StateMachines::Integrations::ActiveRecord.auto_convert_integer_state_attributes && integer_column? && !enum_integrated?
-            register_integer_type
-          end
+
+          register_integer_type if register_integer_type?
         end
 
         # Check if enum integration should be enabled for this machine
@@ -422,6 +421,15 @@ module StateMachines
           generate_state_machine_methods if enum_integrated?
 
           result
+        end
+
+        # Returns true when this machine should use the custom integer attribute type
+        # to convert between Ruby state names and integer database values. This only
+        # applies to non-enum integer columns when automatic conversion is enabled.
+        def register_integer_type?
+          StateMachines::Integrations::ActiveRecord.auto_convert_integer_state_attributes &&
+            integer_column? &&
+            !enum_integrated?
         end
 
         # Check if this machine has enum integration enabled
