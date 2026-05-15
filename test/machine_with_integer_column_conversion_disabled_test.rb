@@ -67,6 +67,27 @@ class MachineWithIntegerColumnConversionDisabledTest < BaseTestCase
     refute_includes @model.with_status(:approved), @record
   end
 
+  def test_scope_uses_raw_integer_relation_condition
+    assert_equal({ 'status' => 1 }, @model.with_status(:approved).where_values_hash)
+  end
+
+  def test_plural_scope_uses_raw_integer_relation_condition
+    assert_equal({ 'status' => [0, 2] }, @model.with_statuses(:pending, :declined).where_values_hash)
+  end
+
+  def test_scope_on_custom_integer_attribute_uses_raw_integer_relation_condition
+    model = new_model do
+      connection.add_column table_name, :state_cd, :integer, default: 1
+    end
+
+    model.state_machine(:state, attribute: :state_cd, initial: :enabled) do
+      state :disabled, value: 0
+      state :enabled,  value: 1
+    end
+
+    assert_equal({ 'state_cd' => 1 }, model.with_state(:enabled).where_values_hash)
+  end
+
   def test_should_persist_raw_integer_on_save
     @record.approve!
     @record.save!
