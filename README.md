@@ -164,6 +164,53 @@ machine.state_machine_methods
 # => ["status_pending?", "status_processing?", "status_completed?", "status_cancelled?", ...]
 ```
 
+## Integer-backed state attributes
+
+Integer columns are converted transparently by default, application code reads
+state names while the database stores integers.
+
+```ruby
+class Order < ApplicationRecord
+  state_machine :status, initial: :pending do
+    state :pending
+    state :approved
+  end
+end
+
+order = Order.create!
+order.status = :approved
+order.status # => "approved"
+# The database stores 1.
+```
+
+Applications that need the legacy raw-integer behavior can disable this during
+boot before defining affected state machines:
+
+```ruby
+# config/initializers/state_machines.rb
+
+StateMachines::Integrations::ActiveRecord.auto_convert_integer_state_attributes = false
+```
+
+With this compatibility setting disabled, integer-backed state attributes are
+left to ActiveRecord's normal integer handling and reads return raw integer
+values.
+
+```ruby
+class LegacyOrder < ApplicationRecord
+  self.table_name = "orders"
+
+  state_machine :status, initial: :pending do
+    state :pending, value: 0
+    state :approved, value: 1
+  end
+end
+
+order = LegacyOrder.create!
+order.status = :approved
+order.status # => 1
+# The database stores 1.
+```
 
 ### Requirements for Enum Integration
 
