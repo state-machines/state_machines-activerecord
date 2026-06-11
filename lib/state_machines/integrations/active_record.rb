@@ -759,12 +759,6 @@ module StateMachines
 
       private
 
-      # Generates the results for the given scope based on one or more states to filter by
-      def run_scope(scope, machine, klass, states)
-        values = states.flatten.compact.map { |state| machine.states.fetch(state).value }
-        scope.call(klass, values)
-      end
-
       # ActiveModel's use of method_missing / respond_to for attribute methods
       # breaks both ancestor lookups and defined?(super).  Need to special-case
       # the existence of query attribute methods.
