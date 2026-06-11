@@ -166,8 +166,9 @@ machine.state_machine_methods
 
 ## Integer-backed state attributes
 
-Integer columns are converted transparently by default, application code reads
-state names while the database stores integers.
+Integer columns whose states don't declare explicit values are converted
+transparently: application code reads state names while the database stores
+integers (mapped by definition order).
 
 ```ruby
 class Order < ApplicationRecord
@@ -183,18 +184,9 @@ order.status # => "approved"
 # The database stores 1.
 ```
 
-Applications that need the legacy raw-integer behavior can disable this during
-boot before defining affected state machines:
-
-```ruby
-# config/initializers/state_machines.rb
-
-StateMachines::Integrations::ActiveRecord.auto_convert_integer_state_attributes = false
-```
-
-With this compatibility setting disabled, integer-backed state attributes are
-left to ActiveRecord's normal integer handling and reads return raw integer
-values.
+Machines where every state declares an explicit integer value keep the classic
+raw-integer behavior automatically: reads return the integer and `status_name`
+returns the state name:
 
 ```ruby
 class LegacyOrder < ApplicationRecord
@@ -203,14 +195,31 @@ class LegacyOrder < ApplicationRecord
   state_machine :status, initial: :pending do
     state :pending, value: 0
     state :approved, value: 1
+
+    event :approve do
+      transition pending: :approved
+    end
   end
 end
 
 order = LegacyOrder.create!
-order.status = :approved
-order.status # => 1
+order.approve!
+order.status      # => 1
+order.status_name # => :approved
 # The database stores 1.
 ```
+
+Applications that want no type conversion at all can disable it during boot,
+before defining affected state machines:
+
+```ruby
+# config/initializers/state_machines.rb
+
+StateMachines::Integrations::ActiveRecord.auto_convert_integer_state_attributes = false
+```
+
+With this setting disabled, integer-backed state attributes are left entirely
+to ActiveRecord's normal integer handling.
 
 ### Requirements for Enum Integration
 
