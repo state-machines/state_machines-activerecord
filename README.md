@@ -164,6 +164,62 @@ machine.state_machine_methods
 # => ["status_pending?", "status_processing?", "status_completed?", "status_cancelled?", ...]
 ```
 
+## Integer-backed state attributes
+
+Integer columns whose states don't declare explicit values are converted
+transparently: application code reads state names while the database stores
+integers (mapped by definition order).
+
+```ruby
+class Order < ApplicationRecord
+  state_machine :status, initial: :pending do
+    state :pending
+    state :approved
+  end
+end
+
+order = Order.create!
+order.status = :approved
+order.status # => "approved"
+# The database stores 1.
+```
+
+Machines where every state declares an explicit integer value keep the classic
+raw-integer behavior automatically: reads return the integer and `status_name`
+returns the state name:
+
+```ruby
+class LegacyOrder < ApplicationRecord
+  self.table_name = "orders"
+
+  state_machine :status, initial: :pending do
+    state :pending, value: 0
+    state :approved, value: 1
+
+    event :approve do
+      transition pending: :approved
+    end
+  end
+end
+
+order = LegacyOrder.create!
+order.approve!
+order.status      # => 1
+order.status_name # => :approved
+# The database stores 1.
+```
+
+Applications that want no type conversion at all can disable it during boot,
+before defining affected state machines:
+
+```ruby
+# config/initializers/state_machines.rb
+
+StateMachines::Integrations::ActiveRecord.auto_convert_integer_state_attributes = false
+```
+
+With this setting disabled, integer-backed state attributes are left entirely
+to ActiveRecord's normal integer handling.
 
 ### Requirements for Enum Integration
 

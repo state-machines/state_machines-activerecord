@@ -14,7 +14,9 @@ class MachineWithEnumIntegrationTest < BaseTestCase
   end
 
   def teardown
+    StateMachines::Integrations::ActiveRecord.auto_convert_integer_state_attributes = true
     $stderr = @original_stderr
+    super
   end
 
   test 'should auto detect enum integration' do
@@ -28,6 +30,18 @@ class MachineWithEnumIntegrationTest < BaseTestCase
 
     # Test that states are properly defined using shared assertions
     assert_sm_states_list(@machine, %i[pending processing completed failed])
+  end
+
+  test 'should keep enum integration when integer conversion is disabled' do
+    StateMachines::Integrations::ActiveRecord.auto_convert_integer_state_attributes = false
+
+    machine = @model.state_machine(:status) do
+      state :pending, :processing, :completed, :failed
+    end
+
+    assert machine.enum_integrated?
+    refute machine.integer_type_registered?
+    assert_equal({ 'pending' => 0, 'processing' => 1, 'completed' => 2, 'failed' => 3 }, machine.enum_mapping)
   end
 
   test 'should not auto detect when no enum exists' do

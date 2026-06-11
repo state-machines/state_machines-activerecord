@@ -372,6 +372,7 @@ module StateMachines
 
       # The default options to use for state machines using this integration
       @defaults = { action: :save, use_transactions: true }
+      @auto_convert_integer_state_attributes = true
 
       # Machine-specific methods for enum integration
       module MachineMethods
@@ -382,7 +383,8 @@ module StateMachines
         def after_initialize
           super
           initialize_enum_integration
-          register_integer_type if integer_column? && !enum_integrated?
+
+          register_integer_type if register_integer_type?
         end
 
         # Check if enum integration should be enabled for this machine
@@ -421,6 +423,15 @@ module StateMachines
           result
         end
 
+        # Returns true when this machine should use the custom integer attribute type
+        # to convert between Ruby state names and integer database values. This only
+        # applies to non-enum integer columns when automatic conversion is enabled.
+        def register_integer_type?
+          StateMachines::Integrations::ActiveRecord.auto_convert_integer_state_attributes &&
+            integer_column? &&
+            !enum_integrated?
+        end
+
         # Check if this machine has enum integration enabled
         def enum_integrated?
           enum_integration && enum_integration[:enabled]
@@ -452,32 +463,45 @@ module StateMachines
         end
 
         # Machine internals (state matching, validations) call read() to get the
-        # current state value and compare it against state.value.  Only override
-        # when states have explicit integer values (e.g. state :pending, value: 0).
-        # In that case the custom type returns a state name string but machine
-        # internals need the raw integer for value-based lookup.
+        # current state value and compare it against state.value. The custom
+        # integer type already returns the canonical value when state values are
+        # uniform: raw integers when every named state has an explicit integer
+        # value (passthrough), name strings when none do (state.value is the
+        # name). Only machines mixing explicit and auto-indexed values need an
+        # override, because the type returns name strings while the explicit
+        # states match on integers; map the stored value back to the matched
+        # state's canonical state.value.
         #
-        # For auto-indexed states (no explicit value), state.value is the string
-        # name so super() returns the right thing already.
+        # @param object [ActiveRecord::Base] record being read
+        # @param attr_sym [Symbol] attribute kind (:state, :event, ...)
+        # @param ivar [Boolean] whether to read from an instance variable
+        # @return [Object] a value machine internals can match on state.value
         def read(object, attr_sym, ivar = false)
           return super unless integer_type_registered? && attr_sym == :state
-          return super unless states_with_explicit_integer_values?
+          return super unless mixed_integer_state_values?
 
           raw = object.read_attribute_before_type_cast(attribute.to_s)
           if raw.is_a?(::String) || raw.is_a?(::Symbol)
             matched = states.detect { |s| s.name && s.name.to_s == raw.to_s }
-            return matched ? matched.value : raw
+            return matched.value if matched
           end
-          raw
+
+          name = owner_class.type_for_attribute(attribute.to_s).deserialize(raw)
+          matched = states.detect { |s| s.name && s.name.to_s == name.to_s }
+          matched ? matched.value : raw
         end
 
         private
 
-        # Returns true when at least one named state has an explicit integer value.
-        # Used to decide whether read() needs to return raw integers for machine
-        # internals rather than relying on the custom type's string representation.
-        def states_with_explicit_integer_values?
-          states.any? { |s| s.name && s.value.is_a?(::Integer) }
+        # Returns true when named states mix explicit integer values with
+        # auto-indexed (name-valued) states. Uses value(false) so dynamic
+        # (Proc) state values are never evaluated for this metadata decision.
+        #
+        # @return [Boolean]
+        def mixed_integer_state_values?
+          named = states.select(&:name)
+          explicit = named.count { |s| s.value(false).is_a?(::Integer) }
+          explicit.positive? && explicit < named.size
         end
 
         # Returns true when the state machine attribute is backed by an integer column
@@ -497,7 +521,8 @@ module StateMachines
         def register_integer_type
           @raw_integer_column_default = owner_class.column_defaults[attribute.to_s]
           @integer_type_registered = true
-          owner_class.attribute(attribute.to_s, StateMachines::Type::Integer.new(states))
+          raw_type = owner_class.type_for_attribute(attribute.to_s)
+          owner_class.attribute(attribute.to_s, StateMachines::Type::Integer.new(states, raw_type: raw_type))
         end
 
         # Detect existing enum methods for this attribute
@@ -650,6 +675,8 @@ module StateMachines
       include MachineMethods
 
       class << self
+        attr_accessor :auto_convert_integer_state_attributes
+
         # Classes that inherit from ActiveRecord::Base will automatically use
         # the ActiveRecord integration.
         def matching_ancestors
