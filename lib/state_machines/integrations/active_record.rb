@@ -316,6 +316,12 @@ module StateMachines
     # * (8) *after_transition*
     # * (-) end transaction (if enabled)
     # * (9) after_commit
+    # * (10) *after_transition* callbacks defined with <tt>:after_commit => true</tt>
+    #
+    # An +after_transition+ callback defined with the <tt>:after_commit</tt>
+    # option is deferred until the surrounding database transaction has been
+    # committed (and discarded if it rolls back).  See the documentation for
+    # +after_transition+ in this integration for more details.
     #
     # == Internationalization
     #
@@ -497,6 +503,81 @@ module StateMachines
 
         def integer_type_registered?
           !!@integer_type_registered
+        end
+
+        # Creates a callback that will be invoked *after* a transition is
+        # performed, so long as the given requirements match the transition.
+        #
+        # In addition to the configuration options supported by the core
+        # +after_transition+ (see StateMachines::Machine#after_transition), the
+        # ActiveRecord integration supports:
+        # * <tt>:after_commit</tt> - Defer execution of the callback until the
+        #   database transaction wrapping the transition has been committed.
+        #   When no transaction is open at that point, the callback runs
+        #   immediately.  When the transaction (or an outer transaction wrapping
+        #   it) is rolled back, the callback is discarded.
+        #
+        # This is the safe place to enqueue background jobs that reference the
+        # record (e.g. via GlobalID), since a regular +after_transition+ runs
+        # inside the transaction, before the record's changes are visible to
+        # other connections:
+        #
+        #   class Vehicle < ApplicationRecord
+        #     state_machine do
+        #       after_transition on: :ignite, after_commit: true do |vehicle|
+        #         EngineWarmupJob.perform_later(vehicle)
+        #       end
+        #
+        #       ...
+        #     end
+        #   end
+        #
+        # Note that a deferred callback cannot halt the callback chain or
+        # affect the result of the transition: by the time it runs, the
+        # transition has already been committed.  For the same reason, an
+        # exception raised by a deferred callback is not propagated (doing so
+        # would revert the record's in-memory state even though the database
+        # was already updated); it is reported to +ActiveSupport.error_reporter+
+        # (+Rails.error+) instead.  Conditions (<tt>:if</tt>/<tt>:unless</tt>)
+        # and state requirements are evaluated when the transition is
+        # performed, not at commit time.
+        #
+        # Like ActiveRecord's own +after_commit+, a surrounding
+        # <tt>transaction(joinable: false)</tt> wrapper is transparent: the
+        # callback fires at the inner commit.  This is what makes it fire
+        # under transactional test fixtures.
+        def after_transition(*args, **options, &block)
+          # The flag may hide in a legacy trailing positional options hash
+          positional_options = args.last.is_a?(Hash) ? args.pop.dup : {}
+          options = positional_options.merge(options)
+
+          # Only a boolean is the flag — a non-boolean value is the implicit
+          # state-requirement form for a state named :after_commit
+          flag = options[:after_commit]
+          return super unless flag == true || flag == false
+
+          options.delete(:after_commit)
+          return super unless flag
+
+          # Method handling goes to a real Callback (reusing core's binding,
+          # arity and :do semantics); branch matching stays on the wrapper so
+          # conditions are evaluated at transition time
+          parsed = parse_callback_arguments(args, options)
+          method_options = parsed.slice(:do, :bind_to_object)
+          method_options[:terminator] = callback_terminator
+          branch_options = parsed.except(:do, :bind_to_object, :terminator)
+
+          deferred = Callback.new(:after, method_options, &block)
+
+          super(**branch_options, bind_to_object: false) do |object, transition|
+            object.class.current_transaction.after_commit do
+              # The transition's catch(:halt) is gone at commit time
+              catch(:halt) { deferred.call(object, {}, transition) }
+            rescue StandardError => e
+              # Raising would roll back in-memory state already committed; report instead
+              ActiveSupport.error_reporter.report(e, handled: false, source: 'state_machines-activerecord')
+            end
+          end
         end
 
         # Machine internals (state matching, validations) call read() to get the
