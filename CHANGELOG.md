@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.200.0](https://github.com/state-machines/state_machines-activerecord/compare/state_machines-activerecord/v0.103.0...state_machines-activerecord/v0.200.0) (2026-06-12)
+
+
+### Features
+
+* remove redundant run_scope override ([5aab883](https://github.com/state-machines/state_machines-activerecord/commit/5aab8838cd04e5c741244f938be0faedd4eb1d13))
+* remove redundant run_scope override ([c8197a6](https://github.com/state-machines/state_machines-activerecord/commit/c8197a6f3cce8aeaacfe34e35ae2fe0757f48c71))
+* support after_commit option on after_transition callbacks ([#138](https://github.com/state-machines/state_machines-activerecord/issues/138)) ([b717068](https://github.com/state-machines/state_machines-activerecord/commit/b717068531bc184b801549e2b959a8a1248b0b89)), closes [#112](https://github.com/state-machines/state_machines-activerecord/issues/112)
+
+
+### Bug Fixes
+
+* add opt-out for integer state attribute conversion ([4f0596b](https://github.com/state-machines/state_machines-activerecord/commit/4f0596bc6a72dcd83ff46948a80812f9e60604ea))
+* handle auto-indexed integer column defaults ([#137](https://github.com/state-machines/state_machines-activerecord/issues/137)) ([b839a99](https://github.com/state-machines/state_machines-activerecord/commit/b839a990c3c554d3b634b935412597292823fba2))
+* re-register integer attribute type when a machine is cloned for a subclass ([#136](https://github.com/state-machines/state_machines-activerecord/issues/136)) ([e903f7b](https://github.com/state-machines/state_machines-activerecord/commit/e903f7b1bba3cb8ce563576f19171c8a9170992a))
+
 ## [0.103.0](https://github.com/state-machines/state_machines-activerecord/compare/state_machines-activerecord/v0.102.0...state_machines-activerecord/v0.103.0) (2026-03-23)
 
 
