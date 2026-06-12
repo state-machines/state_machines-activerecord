@@ -387,6 +387,22 @@ module StateMachines
           register_integer_type if register_integer_type?
         end
 
+        # Hook called when a machine is assigned to a class, including when an
+        # inherited machine is cloned for an STI subclass. The cloned machine
+        # carries the parent's @integer_type_registered flag while the subclass
+        # still inherits the parent's attribute type, which references the
+        # parent machine's state collection. Re-register so the subclass type
+        # sees this machine's (cloned) states, picking up subclass-added states
+        # as they are defined.
+        #
+        # @param klass [Class] the new owner class
+        # @return [Class] the assigned owner class
+        def owner_class=(klass)
+          super.tap do
+            register_integer_type if integer_type_registered?
+          end
+        end
+
         # Check if enum integration should be enabled for this machine
         def detect_enum_integration
           return nil unless owner_class.defined_enums.key?(attribute.to_s)
@@ -521,7 +537,13 @@ module StateMachines
         def register_integer_type
           @raw_integer_column_default = owner_class.column_defaults[attribute.to_s]
           @integer_type_registered = true
-          raw_type = owner_class.type_for_attribute(attribute.to_s)
+
+          # When re-registering (e.g. for an STI subclass that inherited the
+          # parent's custom type), unwrap it to keep the column's original type
+          # as the passthrough delegate.
+          current_type = owner_class.type_for_attribute(attribute.to_s)
+          raw_type = current_type.is_a?(StateMachines::Type::Integer) ? current_type.raw_type : current_type
+
           owner_class.attribute(attribute.to_s, StateMachines::Type::Integer.new(states, raw_type: raw_type))
         end
 

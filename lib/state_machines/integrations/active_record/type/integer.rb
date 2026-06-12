@@ -16,6 +16,12 @@ module StateMachines
     # type, preserving the classic raw-integer behavior
     # (e.g. record.status # => 1, record.status_name # => :approved).
     class Integer < ::ActiveRecord::Type::Value
+      # The column's original attribute type, exposed so re-registration
+      # (e.g. for STI subclasses) can reuse it instead of wrapping this type.
+      #
+      # @return [ActiveModel::Type::Value]
+      attr_reader :raw_type
+
       # @param states [StateMachines::StateCollection] live collection of the
       #   machine's states; held by reference because states are defined after
       #   the type is registered
