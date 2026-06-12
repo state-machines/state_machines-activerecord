@@ -436,7 +436,28 @@ module StateMachines
           # Generate methods after each state addition if enum integration is enabled
           generate_state_machine_methods if enum_integrated?
 
+          # States defined after initialization (e.g. adding an explicit value
+          # to the initial state) can change how the column default maps to
+          # states, so re-evaluate the conflicting-default warning
+          recheck_conflicting_attribute_default if integer_type_registered?
+
           result
+        end
+
+        # Warns at most once when the column default conflicts with the
+        # machine's initial state. The conflict is re-evaluated as states are
+        # defined, so remember when the warning has been issued.
+        def check_conflicting_attribute_default
+          return if @attribute_default_conflict_warned
+
+          initial_state = states.detect(&:initial)
+          conflict = !owner_class_attribute_default.nil? && (
+            dynamic_initial_state? || !owner_class_attribute_default_matches?(initial_state)
+          )
+          return unless conflict
+
+          @attribute_default_conflict_warned = true
+          super
         end
 
         # Returns true when this machine should use the custom integer attribute type
@@ -508,6 +529,17 @@ module StateMachines
         end
 
         private
+
+        # Re-runs the conflicting-default check for states defined after
+        # initialization. Skipped until an initial state exists (the DSL block
+        # evaluates before initial_state= during Machine.new).
+        #
+        # @return [void]
+        def recheck_conflicting_attribute_default
+          return unless states.detect(&:initial)
+
+          check_conflicting_attribute_default
+        end
 
         # Returns true when named states mix explicit integer values with
         # auto-indexed (name-valued) states. Uses value(false) so dynamic
@@ -721,6 +753,22 @@ module StateMachines
         return unless owner_class.connected? && owner_class.table_exists?
 
         owner_class.column_defaults[attribute.to_s]
+      end
+
+      # Checks whether the given state matches the column default. When the
+      # custom integer type is registered, auto-indexed states match on their
+      # name string while the column default is a raw integer, so the default
+      # is also compared through the type's mapping (e.g. 0 matches the first
+      # auto-indexed state).
+      #
+      # @param state [StateMachines::State] the state to compare (the initial state)
+      # @return [Boolean] whether the column default represents this state
+      def owner_class_attribute_default_matches?(state)
+        matches = super
+        return matches if matches || !integer_type_registered?
+
+        default = owner_class_attribute_default
+        state.matches?(owner_class.type_for_attribute(attribute.to_s).deserialize(default))
       end
 
       def define_state_initializer
