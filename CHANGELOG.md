@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.0.0](https://github.com/state-machines/state_machines-activerecord/compare/state_machines-activerecord/v0.200.0...state_machines-activerecord/v1.0.0) (2026-08-17)
+
+
+### ⚠ BREAKING CHANGES
+
+* ActiveRecord 8.0+ is now required.
+
+### Features
+
+* drop Rails 7.2 support ([010459a](https://github.com/state-machines/state_machines-activerecord/commit/010459ad0364b59733359771e130c5af1598fbbd))
+
 ## [0.200.0](https://github.com/state-machines/state_machines-activerecord/compare/state_machines-activerecord/v0.103.0...state_machines-activerecord/v0.200.0) (2026-06-12)
 
 
