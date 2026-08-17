@@ -3,10 +3,11 @@
 source "https://rubygems.org"
 
 gem "state_machines", ">= 0.100.4"
-gem "state_machines-activemodel", ">= 0.101.0"
+gem "state_machines-activemodel", ">= 0.200.0"
 gem "sqlite3", platforms: :mri
 gem "activerecord-jdbcsqlite3-adapter", platform: [:jruby, :truffleruby]
-gem "activerecord", "~> 7.2.0"
+gem "activerecord", github: "rails/rails", branch: "main"
+gem "activemodel", github: "rails/rails", branch: "main"
 
 group :development do
   gem "rubocop"
@@ -15,5 +16,7 @@ end
 platforms :mri do
   gem "debug"
 end
+
+gem "rake", "~> 13.0"
 
 gemspec path: "../"

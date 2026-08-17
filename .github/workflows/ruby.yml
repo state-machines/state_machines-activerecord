@@ -14,9 +14,13 @@ jobs:
       matrix:
         ruby-version: ['3.4', '4.0']
         gemfiles:
-          - gemfiles/active_record_7.2.gemfile
           - gemfiles/active_record_8.0.gemfile
           - gemfiles/active_record_8.1.gemfile
+        include:
+          - ruby-version: '4.0'
+            gemfiles: gemfiles/active_record_edge.gemfile
+            experimental: true
+    continue-on-error: ${{ matrix.experimental == true }}
     env:
       BUNDLE_GEMFILE: ${{ github.workspace }}/${{ matrix.gemfiles }}
     steps:

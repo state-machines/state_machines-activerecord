@@ -16,7 +16,7 @@ Gem::Specification.new do |spec|
   spec.required_ruby_version = '>= 3.2'
   spec.require_paths = ['lib']
 
-  spec.add_dependency 'activerecord', '>= 7.2'
+  spec.add_dependency 'activerecord', '>= 8.0'
   spec.add_dependency 'state_machines-activemodel', '>= 0.200.0'
   spec.add_development_dependency 'appraisal', '>= 1'
   spec.add_development_dependency 'minitest', '= 5.27.0'
