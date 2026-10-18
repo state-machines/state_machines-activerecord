@@ -12,9 +12,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ruby-version: ['3.4', '4.0']
+        ruby-version: ['4.0']
         gemfiles:
-          - gemfiles/active_record_8.0.gemfile
           - gemfiles/active_record_8.1.gemfile
         include:
           - ruby-version: '4.0'
@@ -24,7 +23,7 @@ jobs:
     env:
       BUNDLE_GEMFILE: ${{ github.workspace }}/${{ matrix.gemfiles }}
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v7
     - name: Set up Ruby
       uses: ruby/setup-ruby@v1
       with:
