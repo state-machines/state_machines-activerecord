@@ -4,6 +4,10 @@ require_relative 'test_helper'
 require_relative 'files/models/post'
 
 class ModelTest < ActiveSupport::TestCase
+  def setup
+    create_posts_table
+  end
+
   def test_should_have_draft_state_in_defaut_machine
     assert_equal 'draft', Post.new.state
   end

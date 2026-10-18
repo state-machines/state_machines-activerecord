@@ -1,9 +1,11 @@
 # frozen_string_literal: true
 
-ActiveRecord::Base.connection.create_table(:posts, force: true) do |t|
-  t.string :title
-  t.string :content
-  t.string :state
+def create_posts_table
+  ActiveRecord::Base.connection.create_table(:posts, force: true) do |t|
+    t.string :title
+    t.string :content
+    t.string :state
+  end
 end
 
 class Post < ActiveRecord::Base
