@@ -15,8 +15,7 @@ end
 
 platforms :mri do
   gem "debug"
+  gem "padded_cell", "~> 0.2"
 end
-
-gem "rake", "~> 13.0"
 
 gemspec path: "../"
