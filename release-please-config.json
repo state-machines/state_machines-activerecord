@@ -3,7 +3,9 @@
     ".": {
       "release-type": "ruby",
       "package-name": "state_machines-activerecord",
-      "version-file": "lib/state_machines/integrations/active_record/version.rb"
+      "version-file": "lib/state_machines/integrations/active_record/version.rb",
+      "bump-minor-pre-major": true,
+      "release-as": "0.300.0"
     }
   }
 }
