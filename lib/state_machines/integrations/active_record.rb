@@ -5,6 +5,7 @@ require 'active_record'
 require 'state_machines/integrations/active_record/version'
 require 'state_machines/integrations/active_record/type/integer'
 require 'state_machines/integrations/active_record/state_guard'
+require 'state_machines/integrations/active_record/force_state'
 
 module StateMachines
   module Integrations # :nodoc:
@@ -462,6 +463,7 @@ module StateMachines
         def owner_class=(klass)
           super.tap do
             klass.include(RefusalReset) unless klass < RefusalReset
+            klass.include(ForceState) unless klass < ForceState
             StateGuard.install(klass, attribute) if direct_assignment_denied?
             register_integer_type if integer_type_registered?
           end

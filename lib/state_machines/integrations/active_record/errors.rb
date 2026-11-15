@@ -58,9 +58,10 @@ module StateMachines
     end
   end
 
-  # Raised by +becomes+ while a record still has queued state machine work
-  # (a pending event attribute or a transition prepared by validation): the
-  # new instance would silently drop it.
+  # Raised by +becomes+ or +force_state!+ while a record still has queued
+  # state machine work (a pending event attribute or a transition prepared by
+  # validation): +becomes+ would silently drop it, +force_state!+ would race
+  # it.
   class PendingStateEvent < Error
     # @return [StateMachines::Machine] the machine with queued work
     attr_reader :machine
@@ -71,11 +72,12 @@ module StateMachines
     # @param object [ActiveRecord::Base] the record being converted
     # @param machine [StateMachines::Machine] the machine with queued work
     # @param event [Symbol, String] the queued event
-    def initialize(object, machine, event)
+    # @param operation [String] the refused method
+    def initialize(object, machine, event, operation: 'becomes')
       @machine = machine
       @event = event
 
-      super(object, "Cannot call becomes on #{object.class.name} while state machine #{machine.name.inspect} " \
+      super(object, "Cannot call #{operation} on #{object.class.name} while state machine #{machine.name.inspect} " \
                     "has queued work (#{machine.attribute(:event)} = #{event.inspect}); " \
                     'save the record or clear the event first.')
     end

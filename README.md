@@ -141,6 +141,20 @@ A form submitting `state` alongside (or instead of) `state_event` gets a
 
 ### Data repair
 
+`force_state!` moves a record to a state without firing an event and saves
+it. Transition callbacks are skipped, but validations and save callbacks run,
+so auditing (e.g. paper_trail) still records the change. It works whether or
+not the machine denies direct assignment:
+
+```ruby
+vehicle.force_state!(:parked)
+vehicle.force_state!(:off, machine: :alarm_state)  # required with several machines
+```
+
+It raises `IndexError` for an unknown state, `StateMachines::PendingStateEvent`
+while an event is queued, and `ActiveRecord::RecordInvalid` when the record is
+invalid.
+
 Raw persistence stays outside the state machine on purpose: no event is
 inferred, no callback or validation runs.
 

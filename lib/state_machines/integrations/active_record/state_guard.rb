@@ -330,13 +330,14 @@ module StateMachines
             verify_persistable!(record) if queued_work(record)
           end
 
-          # @param record [ActiveRecord::Base] the record being converted
+          # @param record [ActiveRecord::Base] the record being converted or forced
+          # @param operation [String] the refused method, named in the error
           # @return [void]
           # @raise [StateMachines::PendingStateEvent] when an event attribute
           #   or a prepared transition is queued
-          def ensure_no_queued_work!(record)
+          def ensure_no_queued_work!(record, operation: 'becomes')
             machine, event = queued_work(record)
-            raise PendingStateEvent.new(record, machine, event) if machine
+            raise PendingStateEvent.new(record, machine, event, operation: operation) if machine
           end
 
           # Gives +target+ the same state authorizations as +source+.
