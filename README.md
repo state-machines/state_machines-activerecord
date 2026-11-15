@@ -299,6 +299,28 @@ class Vehicle < ApplicationRecord
 end
 ```
 
+## Transient state attributes
+
+A machine can live on an attribute that is not a database column, either an
+`attr_accessor` or an Attributes API `attribute` with no column behind it:
+
+```ruby
+class Order < ApplicationRecord
+  attribute :stage, :string
+
+  state_machine :stage, initial: ->(order) { order.paid_at ? :paid : :open } do
+    state :open, :paid
+  end
+end
+```
+
+The initial state is applied to new records *and* to records loaded from the
+database (loading skips `initialize`, so the integration fills the blank
+attribute itself). That happens before `after_find`/`after_initialize`
+callbacks run, so those can still override it. State-scoped validations run
+as they do for column-backed machines. Machines on real columns are never
+re-initialized on load: a `NULL` in the database stays `nil`.
+
 ## Why an event was refused
 
 An event method still returns `false` when it is refused, and `errors` is filled

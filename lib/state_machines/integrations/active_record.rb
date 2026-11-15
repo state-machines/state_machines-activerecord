@@ -496,6 +496,19 @@ module StateMachines
           schema_default_state || super
         end
 
+        # Whether the machine's attribute is not backed by a database column
+        # (aliases resolve to their target). Reads the class's memoized
+        # columns, so it is cheap enough to call for every loaded record.
+        # Returns false while the schema cannot be read.
+        #
+        # @return [Boolean]
+        def transient_attribute?
+          name = attribute.to_s
+          !owner_class.columns_hash.key?(owner_class.attribute_aliases.fetch(name, name))
+        rescue ::ActiveRecord::StatementInvalid, ::ActiveRecord::ConnectionNotEstablished
+          false
+        end
+
         # Whether the machine was given an explicit (non-nil) initial state.
         #
         # @return [Boolean]
@@ -891,6 +904,24 @@ module StateMachines
         def matching_ancestors
           [::ActiveRecord::Base]
         end
+
+        # Initializes the states of a record loaded from the database for the
+        # machines whose attribute is not a database column (an
+        # +attr_accessor+ or a column-less Attributes API attribute). Loading
+        # skips +initialize+, so without this such records would start with a
+        # blank state. Column-backed machines are left alone: the stored value,
+        # even NULL, is the record's state. Only blank attributes are filled,
+        # static initial states before dynamic ones (which may depend on them),
+        # and before +after_find+/+after_initialize+ callbacks run, so those
+        # callbacks can still override the state.
+        #
+        # @param record [ActiveRecord::Base] the record being loaded
+        # @return [void]
+        def initialize_transient_states(record)
+          machines = record.class.state_machines.values.select(&:transient_attribute?)
+          static, dynamic = machines.partition { |machine| !machine.dynamic_initial_state? }
+          (static + dynamic).each { |machine| machine.initialize_state(record) }
+        end
       end
 
       protected
@@ -941,6 +972,13 @@ module StateMachines
 
               self.class.state_machines.initialize_states(self, {}, scoped_attributes)
               yield(*args) if block_given?
+            end
+          end
+
+          def init_with_attributes(attributes, new_record = false)
+            super do |record|
+              StateMachines::Integrations::ActiveRecord.initialize_transient_states(record)
+              yield record if block_given?
             end
           end
         END_EVAL
