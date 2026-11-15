@@ -52,16 +52,45 @@ class MachineWithSchemaDefaultInitialStateTest < BaseTestCase
     assert_equal 'inactive', model.new.status
   end
 
-  # Dynamic initial states only fill a blank attribute (they run after the
-  # attributes and the initializer block, which must not be clobbered), so a
-  # column default keeps precedence over them, as it always has. The
-  # conflicting-default warning points this out.
-  def test_should_keep_column_default_over_dynamic_initial_state
+  # Bug: a dynamic initial state only filled a blank attribute, and the column
+  # default was already there, so the lambda was ignored. An explicit initial
+  # state wins over the column default whether static or dynamic; the
+  # conflicting-default warning still points out the two defaults.
+  def test_should_apply_dynamic_initial_state_over_column_default
     model = model_with_column(:string, default: 'active', null: false)
     model.state_machine(:status, initial: ->(_record) { :inactive }) { state :active, :inactive }
 
-    assert_equal 'active', model.new.status
+    assert_equal 'inactive', model.new.status
     assert_match(/have defined a different default for "status"/, $stderr.string)
+  end
+
+  def test_should_evaluate_dynamic_initial_state_from_given_attributes
+    model = model_with_column(:string, default: 'active', null: false)
+    model.attribute :priority, :string
+    model.state_machine(:status, initial: ->(record) { record.priority == 'high' ? :active : :inactive }) do
+      state :active, :inactive
+    end
+
+    assert_equal 'active', model.new(priority: 'high').status
+    assert_equal 'inactive', model.new(priority: 'low').status
+  end
+
+  def test_should_keep_given_state_over_dynamic_initial_state
+    model = model_with_column(:string, default: 'active', null: false)
+    model.state_machine(:status, initial: ->(_record) { :inactive }) { state :active, :inactive }
+
+    assert_equal 'active', model.new(status: 'active').status
+    assert_equal 'active', model.new { |record| record.status = 'active' }.status
+  end
+
+  def test_should_refuse_given_state_other_than_dynamic_initial_state_when_denied
+    model = model_with_column(:string, default: 'active', null: false)
+    model.state_machine(:status, initial: ->(_record) { :inactive }, direct_assignment: :deny) do
+      state :active, :inactive
+    end
+
+    assert_equal 'inactive', model.new.status
+    assert_raises(StateMachines::DirectStateAssignment) { model.new(status: 'active') }
   end
 
   def test_should_refuse_explicitly_assigned_non_initial_state

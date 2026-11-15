@@ -177,10 +177,10 @@ Account.new.state       # => "active"
 Account.new.suspend     # => true
 ```
 
-- An explicit static `initial:` always wins over the schema default (and the
-  "different default" warning is printed, as before).
-- A dynamic `initial: ->(record) { ... }` only fills a blank attribute, so a
-  schema default keeps precedence over it; the warning is printed.
+- An explicit `initial:`, static or dynamic, always wins over the schema
+  default (and the "different default" warning is printed). A dynamic one is
+  evaluated after the attributes given to `new` are assigned, so it can depend
+  on them; a state given to `new` is kept.
 - The default is read when a record is built, not when the class is loaded,
   so defining the machine before the table exists (e.g. while migrating) is
   fine.

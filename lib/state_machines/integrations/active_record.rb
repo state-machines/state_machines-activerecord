@@ -1028,6 +1028,30 @@ module StateMachines
           static, dynamic = machines.partition { |machine| !machine.dynamic_initial_state? }
           (static + dynamic).each { |machine| machine.initialize_state(record) }
         end
+
+        # Initializes the states of a new record. A dynamic initial state is
+        # applied even over a column default, like a static one: the column
+        # default is already in the attribute, so core's dynamic pass (which
+        # only fills a blank attribute) would keep it. A state the caller
+        # passed is left in place for {StateGuard} to check. Dynamic states
+        # are evaluated after static ones, which they may depend on; the
+        # caller's +new+ block runs afterwards, so it cannot be overwritten.
+        #
+        # @param record [ActiveRecord::Base] the record being built
+        # @param attributes [Hash] the attributes given to +new+, aliases
+        #   resolved, plus the scope's attributes
+        # @return [void]
+        def initialize_new_record_states(record, attributes)
+          machines = record.class.state_machines
+          machines.initialize_states(record, { dynamic: false }, attributes)
+
+          given = attributes.keys.map(&:to_s)
+          machines.each_value do |machine|
+            next unless machine.dynamic_initial_state?
+
+            machine.initialize_state(record, force: !given.include?(StateGuard.guarded_name(machine)))
+          end
+        end
       end
 
       protected
@@ -1077,7 +1101,7 @@ module StateMachines
               attributes = (attributes || {}).transform_keys { |key| self.class.attribute_aliases[key.to_s] || key }
               scoped_attributes = attributes.merge(self.class.scope_attributes)
 
-              self.class.state_machines.initialize_states(self, {}, scoped_attributes)
+              StateMachines::Integrations::ActiveRecord.initialize_new_record_states(self, scoped_attributes)
               StateMachines::Integrations::ActiveRecord::StateGuard.finish_construction(self)
               yield(*args) if block_given?
             end
