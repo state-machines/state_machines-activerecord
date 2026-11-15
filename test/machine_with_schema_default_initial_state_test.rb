@@ -66,7 +66,7 @@ class MachineWithSchemaDefaultInitialStateTest < BaseTestCase
 
   def test_should_refuse_explicitly_assigned_non_initial_state
     model = model_with_column(:string, default: 'active', null: false)
-    model.state_machine(:status) { state :active, :inactive }
+    model.state_machine(:status, direct_assignment: :deny) { state :active, :inactive }
 
     assert_equal 'active', model.new(status: 'active').status
     assert_raises(StateMachines::DirectStateAssignment) { model.new(status: 'inactive') }

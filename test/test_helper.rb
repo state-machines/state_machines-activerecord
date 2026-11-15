@@ -17,6 +17,22 @@ ActiveRecord::Base.establish_connection('adapter' => 'sqlite3', 'database' => ':
 ActiveRecord::Base.logger = Logger.new("#{File.dirname(__FILE__)}/../log/active_record.log")
 ActiveSupport.test_order = :random
 
+# Makes machines defined during each test deny direct state assignment by
+# default, for tests exercising StateMachines::Integrations::ActiveRecord::StateGuard.
+module DenyDirectAssignment
+  def before_setup
+    @previous_direct_assignment = StateMachines::Integrations::ActiveRecord.direct_assignment
+    StateMachines::Integrations::ActiveRecord.direct_assignment = :deny
+    super
+  end
+
+  def after_teardown
+    super
+  ensure
+    StateMachines::Integrations::ActiveRecord.direct_assignment = @previous_direct_assignment
+  end
+end
+
 class BaseTestCase < ActiveSupport::TestCase
   include StateMachines::TestHelper
   protected

@@ -13,14 +13,15 @@ module TransientStateAttributeTests
   # Builds a model with a transient +status+ machine.
   #
   # @param initial [Symbol, Proc] the machine's initial state
+  # @param direct_assignment [Symbol] the machine's direct_assignment mode
   # @return [Class] the model class
-  def build_model(initial:)
+  def build_model(initial:, direct_assignment: :allow)
     kind = transient_kind
     new_model do
       kind == :accessor ? attr_accessor(:status) : attribute(:status, :string)
       attr_accessor :gubbins, :validated
 
-      state_machine :status, initial: initial do
+      state_machine :status, initial: initial, direct_assignment: direct_assignment do
         event(:one_to_two) { transition one: :two }
         event(:two_to_three) { transition two: :three }
 
@@ -91,10 +92,11 @@ module TransientStateAttributeTests
   end
 
   def test_should_refuse_direct_state_write_in_after_initialize
-    @model.after_initialize { self.status = 'three' if persisted? }
-    id = @model.create!(gubbins: 1).id
+    model = build_model(initial: :one, direct_assignment: :deny)
+    model.after_initialize { self.status = 'three' if persisted? }
+    id = model.create!(gubbins: 1).id
 
-    assert_raises(StateMachines::DirectStateAssignment) { @model.find(id) }
+    assert_raises(StateMachines::DirectStateAssignment) { model.find(id) }
   end
 
   def test_should_evaluate_dynamic_initial_state_against_loaded_record

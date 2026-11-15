@@ -8,7 +8,7 @@ class MachineWithIntegerColumnTest < BaseTestCase
       connection.add_column table_name, :status, :integer
     end
 
-    @machine = StateMachines::Machine.new(@model, :status, initial: :pending)
+    @machine = StateMachines::Machine.new(@model, :status, initial: :pending, direct_assignment: :deny)
     @machine.state :pending
     @machine.state :approved
     @machine.state :declined

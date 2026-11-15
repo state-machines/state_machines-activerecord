@@ -146,7 +146,7 @@ class MachineWithEnumIntegrationTest < BaseTestCase
   end
 
   test 'should refuse rails enum bang writers that change the state' do
-    @model.state_machine(:status) do
+    @model.state_machine(:status, direct_assignment: :deny) do
       state :pending, :processing
       event(:process) { transition pending: :processing }
     end

@@ -6,7 +6,7 @@ class MachineWithInitializedAliasedAttributeTest < BaseTestCase
       alias_attribute :custom_status, :state
     end
 
-    @machine = StateMachines::Machine.new(@model, :initial => :parked, :attribute => :state)
+    @machine = StateMachines::Machine.new(@model, initial: :parked, attribute: :state, direct_assignment: :deny)
     @machine.state :started
 
     @record = @model.new(:custom_status => :parked)

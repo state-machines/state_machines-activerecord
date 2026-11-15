@@ -5,7 +5,10 @@ require 'state_machines/integrations/active_record/errors'
 module StateMachines
   module Integrations
     module ActiveRecord
-      # Enforces that state changes through the model are event-only.
+      # Enforces that state changes through the model are event-only, for
+      # machines declared with <tt>direct_assignment: :deny</tt> (or all
+      # machines when ActiveRecord.direct_assignment is +:deny+). Machines
+      # allowing direct assignment (the default) are left alone.
       #
       # Every write of a machine's attribute through the model (setter, mass
       # assignment, attribute alias, +record[:attr] =+, +write_attribute+) is
@@ -380,6 +383,8 @@ module StateMachines
             seen = Set.new
 
             record.class.state_machines.each_value do |machine|
+              next unless machine.direct_assignment_denied?
+
               name = guarded_name(machine)
               next unless seen.add?(name) && record._has_attribute?(name) && !machine.transient_attribute?
 
@@ -391,9 +396,11 @@ module StateMachines
           end
 
           # @return [StateMachines::Machine, nil] the first machine writing
-          #   attribute +name+
+          #   attribute +name+ that denies direct assignment
           def machine_for(record, name)
-            record.class.state_machines.each_value.find { |machine| guarded_name(machine) == name }
+            record.class.state_machines.each_value.find do |machine|
+              machine.direct_assignment_denied? && guarded_name(machine) == name
+            end
           end
 
           # @return [Array(StateMachines::Machine, Object), nil] the first

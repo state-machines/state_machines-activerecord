@@ -36,6 +36,7 @@ module DirectStateAssignmentHelpers
 end
 
 class MachineWithDirectStateAssignmentTest < BaseTestCase
+  include DenyDirectAssignment
   include DirectStateAssignmentHelpers
 
   def setup
@@ -146,6 +147,7 @@ class MachineWithDirectStateAssignmentTest < BaseTestCase
 end
 
 class MachineWithDirectStateAssignmentInCallbacksTest < BaseTestCase
+  include DenyDirectAssignment
   include DirectStateAssignmentHelpers
 
   def test_should_raise_when_after_transition_overwrites_destination
@@ -204,6 +206,7 @@ class MachineWithDirectStateAssignmentInCallbacksTest < BaseTestCase
 end
 
 class MachineWithDirectStateAssignmentOnNewRecordTest < BaseTestCase
+  include DenyDirectAssignment
   include DirectStateAssignmentHelpers
 
   def setup
@@ -266,6 +269,7 @@ class MachineWithDirectStateAssignmentOnNewRecordTest < BaseTestCase
 end
 
 class MachineWithDirectStateAssignmentBackstopTest < BaseTestCase
+  include DenyDirectAssignment
   include DirectStateAssignmentHelpers
 
   def setup
@@ -354,6 +358,7 @@ class MachineWithDirectStateAssignmentBackstopTest < BaseTestCase
 end
 
 class MachineWithDirectStateAssignmentRawPersistenceTest < BaseTestCase
+  include DenyDirectAssignment
   include DirectStateAssignmentHelpers
 
   def setup
@@ -394,6 +399,7 @@ class MachineWithDirectStateAssignmentRawPersistenceTest < BaseTestCase
 end
 
 class MachineWithDirectStateAssignmentBecomesTest < BaseTestCase
+  include DenyDirectAssignment
   include DirectStateAssignmentHelpers
 
   def setup
@@ -444,6 +450,8 @@ class MachineWithDirectStateAssignmentBecomesTest < BaseTestCase
 end
 
 class MachineWithDirectStateAssignmentOnIntegerColumnTest < BaseTestCase
+  include DenyDirectAssignment
+
   def setup
     @model = new_model(false) do
       connection.create_table(table_name, force: true) { |t| t.integer(:state) }
@@ -476,6 +484,8 @@ class MachineWithDirectStateAssignmentOnIntegerColumnTest < BaseTestCase
 end
 
 class MachineWithDirectStateAssignmentOnAliasTest < BaseTestCase
+  include DenyDirectAssignment
+
   def test_should_guard_alias_of_machine_attribute
     model = new_model do
       alias_attribute :vehicle_status, :state
@@ -522,6 +532,8 @@ class MachineWithDirectStateAssignmentOnAliasTest < BaseTestCase
 end
 
 class MachineWithDirectStateAssignmentOnMultipleMachinesTest < BaseTestCase
+  include DenyDirectAssignment
+
   def setup
     @model = new_model do
       connection.add_column table_name, :alarm_state, :string
@@ -556,6 +568,8 @@ class MachineWithDirectStateAssignmentOnMultipleMachinesTest < BaseTestCase
 end
 
 class MachineWithDirectStateAssignmentOnSiblingMachinesTest < BaseTestCase
+  include DenyDirectAssignment
+
   def setup
     @model = new_model do
       state_machine initial: :parked do
@@ -618,6 +632,7 @@ module DirectStateAssignmentOnTransientAttributeTests
 end
 
 class MachineWithDirectStateAssignmentOnAttrAccessorTest < BaseTestCase
+  include DenyDirectAssignment
   include DirectStateAssignmentOnTransientAttributeTests
 
   private
@@ -626,6 +641,7 @@ class MachineWithDirectStateAssignmentOnAttrAccessorTest < BaseTestCase
 end
 
 class MachineWithDirectStateAssignmentOnAttributesApiTest < BaseTestCase
+  include DenyDirectAssignment
   include DirectStateAssignmentOnTransientAttributeTests
 
   def test_should_raise_on_write_attribute

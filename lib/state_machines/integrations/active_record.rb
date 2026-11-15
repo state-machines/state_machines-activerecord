@@ -112,7 +112,21 @@ module StateMachines
     #
     # == Direct state assignment
     #
-    # State changes through the model are event-only. Writing a different
+    # By default the machine's attribute can be written directly. Declare
+    # <tt>direct_assignment: :deny</tt> to make state changes through the
+    # model event-only:
+    #
+    #   class Vehicle < ActiveRecord::Base
+    #     state_machine initial: :parked, direct_assignment: :deny do
+    #       event(:ignite) { transition parked: :idling }
+    #     end
+    #   end
+    #
+    # The default for machines that do not set the option is
+    # <tt>StateMachines::Integrations::ActiveRecord.direct_assignment</tt>
+    # (+:allow+); set it to +:deny+ to opt every machine in.
+    #
+    # With +:deny+, state changes through the model are event-only. Writing a different
     # state directly (the attribute writer, mass assignment, an alias,
     # <tt>record[:state] =</tt>, +write_attribute+, building a record with a
     # non-initial state, or a callback doing any of these) raises
@@ -401,6 +415,10 @@ module StateMachines
       # The default options to use for state machines using this integration
       @defaults = { action: :save, use_transactions: true }
       @auto_convert_integer_state_attributes = true
+      @direct_assignment = :allow
+
+      # Values accepted by the +direct_assignment+ machine option
+      DIRECT_ASSIGNMENT_MODES = %i[allow deny].freeze
 
       # Forgets the refusal reasons recorded on a record when it is reloaded:
       # they describe attempts made against the state being discarded.
@@ -444,9 +462,35 @@ module StateMachines
         def owner_class=(klass)
           super.tap do
             klass.include(RefusalReset) unless klass < RefusalReset
-            StateGuard.install(klass, attribute)
+            StateGuard.install(klass, attribute) if direct_assignment_denied?
             register_integer_type if integer_type_registered?
           end
+        end
+
+        # How direct writes of the machine's attribute are treated: +:allow+
+        # (they go through untouched) or +:deny+ (state changes are
+        # event-only, see {StateGuard}). Set per machine with the
+        # +direct_assignment+ option, defaulting to
+        # {ActiveRecord.direct_assignment}.
+        #
+        # @return [Symbol] +:allow+ or +:deny+
+        # @raise [ArgumentError] when the configured value is not a known mode
+        def direct_assignment
+          @direct_assignment ||= begin
+            mode = integration_options.fetch(:direct_assignment) { ActiveRecord.direct_assignment }
+            unless DIRECT_ASSIGNMENT_MODES.include?(mode)
+              raise ArgumentError,
+                    "Invalid direct_assignment: #{mode.inspect} (expected one of #{DIRECT_ASSIGNMENT_MODES.inspect})"
+            end
+
+            mode
+          end
+        end
+
+        # @return [Boolean] whether state changes through the model are
+        #   event-only
+        def direct_assignment_denied?
+          direct_assignment == :deny
         end
 
         # Check if enum integration should be enabled for this machine
@@ -947,6 +991,17 @@ module StateMachines
 
       class << self
         attr_accessor :auto_convert_integer_state_attributes
+
+        # Default +direct_assignment+ mode for machines that do not set one:
+        # +:allow+ (default) or +:deny+. Read when a machine is defined.
+        #
+        # @return [Symbol]
+        attr_accessor :direct_assignment
+
+        # @return [Array<Symbol>] machine options added by this integration
+        def integration_options
+          [:direct_assignment]
+        end
 
         # Classes that inherit from ActiveRecord::Base will automatically use
         # the ActiveRecord integration.

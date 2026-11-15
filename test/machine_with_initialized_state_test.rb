@@ -7,7 +7,7 @@ require_relative 'test_helper'
 class MachineWithInitializedStateTest < BaseTestCase
   def setup
     @model = new_model
-    @machine = StateMachines::Machine.new(@model, initial: :parked)
+    @machine = StateMachines::Machine.new(@model, initial: :parked, direct_assignment: :deny)
     @machine.state :idling
   end
 

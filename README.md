@@ -62,7 +62,24 @@ end
 
 ## State changes go through events
 
-The only way to change a record's state through the model is an event:
+Opt a machine in with `direct_assignment: :deny`:
+
+```ruby
+class Vehicle < ActiveRecord::Base
+  state_machine initial: :parked, direct_assignment: :deny do
+    event(:ignite) { transition parked: :idling }
+  end
+end
+```
+
+Machines without the option use
+`StateMachines::Integrations::ActiveRecord.direct_assignment`, which is
+`:allow` (the attribute can be written directly). Set it to `:deny` in an
+initializer to opt every machine in; a machine can still pass
+`direct_assignment: :allow`. The default is read when a machine is defined,
+so set it before your models load.
+
+With `:deny`, the only way to change a record's state through the model is an event:
 
 ```ruby
 vehicle.ignite                  # fire it
@@ -229,7 +246,7 @@ When enum integration is detected, the gem automatically:
 order = Order.create(status: :pending)
 order.pending?        # => true (Rails enum method)
 order.processing?     # => false (Rails enum method)
-order.processing!     # => StateMachines::DirectStateAssignment (writes the state directly)
+order.processing!     # => writes the state directly; raises StateMachines::DirectStateAssignment with direct_assignment: :deny
 order.process         # Fire the event instead
 
 Order.pending         # Rails enum scope

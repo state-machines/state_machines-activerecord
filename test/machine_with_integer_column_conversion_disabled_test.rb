@@ -10,7 +10,7 @@ class MachineWithIntegerColumnConversionDisabledTest < BaseTestCase
       connection.add_column table_name, :status, :integer, default: 0
     end
 
-    @machine = StateMachines::Machine.new(@model, :status, initial: :pending) do
+    @machine = StateMachines::Machine.new(@model, :status, initial: :pending, direct_assignment: :deny) do
       state :pending,  value: 0
       state :approved, value: 1
       state :declined, value: 2
