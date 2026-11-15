@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.302.0](https://github.com/state-machines/state_machines-activerecord/compare/state_machines-activerecord/v0.301.0...state_machines-activerecord/v0.302.0) (2026-11-15)
+
+
+### ⚠ BREAKING CHANGES
+
+* a dynamic initial state wins over the column default ([#147](https://github.com/state-machines/state_machines-activerecord/issues/147))
+
+### Bug Fixes
+
+* a dynamic initial state wins over the column default ([#147](https://github.com/state-machines/state_machines-activerecord/issues/147)) ([938af3f](https://github.com/state-machines/state_machines-activerecord/commit/938af3fa7f4e82e9f71625a97298fb143cedc0a9))
+
 ## [0.301.0](https://github.com/state-machines/state_machines-activerecord/compare/state_machines-activerecord/v0.300.0...state_machines-activerecord/v0.301.0) (2026-11-15)
 
 
