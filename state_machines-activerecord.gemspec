@@ -17,7 +17,7 @@ Gem::Specification.new do |spec|
   spec.require_paths = ['lib']
 
   spec.add_dependency 'activerecord', '>= 8.1'
-  spec.add_dependency 'state_machines-activemodel', '>= 0.200.0'
+  spec.add_dependency 'state_machines-activemodel', '>= 0.300.0'
   spec.add_development_dependency 'appraisal', '>= 1'
   spec.add_development_dependency 'minitest', '~> 6.0'
   spec.add_development_dependency 'minitest-reporters'
