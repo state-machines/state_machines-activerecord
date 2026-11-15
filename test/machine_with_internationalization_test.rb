@@ -21,7 +21,7 @@ class MachineWithInternationalizationTest < BaseTestCase
     machine.state :parked, :idling
     machine.event :ignite
 
-    record = @model.new(state: 'idling')
+    record = @model.new
 
     machine.invalidate(record, :state, :invalid_transition, [[:event, 'ignite']])
     assert_equal ['State cannot transition via "ignite"'], record.errors.full_messages
@@ -35,7 +35,7 @@ class MachineWithInternationalizationTest < BaseTestCase
     machine = StateMachines::Machine.new(@model, messages: { invalid_transition: :bad_transition })
     machine.state :parked, :idling
 
-    record = @model.new(state: 'idling')
+    record = @model.new
 
     machine.invalidate(record, :state, :invalid_transition, [[:event, 'ignite']])
     assert_equal ['State cannot ignite'], record.errors.full_messages
@@ -46,7 +46,7 @@ class MachineWithInternationalizationTest < BaseTestCase
                                          messages: { invalid_transition: "cannot #{interpolation_key('event')}" })
     machine.state :parked, :idling
 
-    record = @model.new(state: 'idling')
+    record = @model.new
 
     machine.invalidate(record, :state, :invalid_transition, [[:event, 'ignite']])
     assert_equal ['State cannot ignite'], record.errors.full_messages
@@ -168,7 +168,7 @@ class MachineWithInternationalizationTest < BaseTestCase
     machine.state :parked, :idling
     machine.event :ignite
 
-    record = @model.new(state: 'idling')
+    record = @model.new
 
     machine.invalidate(record, :state, :invalid_transition, [[:event, 'ignite']])
     assert_equal ['State cannot transition'], record.errors.full_messages

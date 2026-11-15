@@ -63,10 +63,11 @@ class MachineWithDynamicInitialStateTest < BaseTestCase
   end
 
   def test_should_not_set_initial_state_after_already_initialized
+    @machine.event(:ignite) { transition parked: :idling }
     record = @model.new(value: 1)
     assert_equal 'parked', record.state
 
-    record.state = 'idling'
+    record.ignite(false)
     record.attributes = {}
     assert_equal 'idling', record.state
   end
@@ -88,14 +89,14 @@ class MachineWithDynamicInitialStateTest < BaseTestCase
   def test_should_use_stored_values_when_loading_from_database
     @machine.state :idling
 
-    record = @model.find(@model.create(state: 'idling').id)
+    record = @model.find(create_in_state(@model, 'idling').id)
     assert_equal 'idling', record.state
   end
 
   def test_should_use_stored_values_when_loading_from_database_with_nil_state
     @machine.state nil
 
-    record = @model.find(@model.create(state: nil).id)
+    record = @model.find(create_in_state(@model, nil).id)
     assert_nil record.state
   end
 end

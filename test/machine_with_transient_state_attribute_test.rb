@@ -74,17 +74,27 @@ module TransientStateAttributeTests
   end
 
   def test_should_not_run_state_validations_outside_scoped_states
-    record = @model.new(status: 'three')
+    record = @model.new(gubbins: 1)
+    record.one_to_two(false)
+    record.two_to_three(false)
+    record.gubbins = nil
 
     assert_predicate record, :valid?
     refute record.validated
   end
 
-  def test_should_let_after_initialize_override_initial_state
+  def test_should_initialize_state_before_after_initialize
+    @model.after_initialize { one_to_two(false) if persisted? }
+    id = @model.create!(gubbins: 1).id
+
+    assert_equal 'two', @model.find(id).status
+  end
+
+  def test_should_refuse_direct_state_write_in_after_initialize
     @model.after_initialize { self.status = 'three' if persisted? }
     id = @model.create!(gubbins: 1).id
 
-    assert_equal 'three', @model.find(id).status
+    assert_raises(StateMachines::DirectStateAssignment) { @model.find(id) }
   end
 
   def test_should_evaluate_dynamic_initial_state_against_loaded_record

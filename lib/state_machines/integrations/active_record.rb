@@ -4,6 +4,7 @@ require 'state_machines-activemodel'
 require 'active_record'
 require 'state_machines/integrations/active_record/version'
 require 'state_machines/integrations/active_record/type/integer'
+require 'state_machines/integrations/active_record/state_guard'
 
 module StateMachines
   module Integrations # :nodoc:
@@ -109,6 +110,26 @@ module StateMachines
     #     # Control access via strong parameters in your controller
     #   end
     #
+    # == Direct state assignment
+    #
+    # State changes through the model are event-only. Writing a different
+    # state directly (the attribute writer, mass assignment, an alias,
+    # <tt>record[:state] =</tt>, +write_attribute+, building a record with a
+    # non-initial state, or a callback doing any of these) raises
+    # StateMachines::DirectStateAssignment before the value changes, and
+    # +save+ refuses to persist a state changed behind the writer's back.
+    # Assigning the state the record already holds is allowed and runs
+    # nothing.
+    #
+    #   vehicle = Vehicle.create      # => #<Vehicle id: 1, name: nil, state: "parked">
+    #   vehicle.state = 'idling'      # => StateMachines::DirectStateAssignment
+    #   vehicle.ignite                # => true
+    #
+    # Raw persistence (+update_column+, +update_columns+, +update_all+,
+    # +insert_all+ / +upsert_all+, SQL) stays outside the machine for data
+    # repair: no event is inferred and no callback runs. Reload live
+    # instances afterwards. See StateGuard for the details.
+    #
     # == Transactions
     #
     # In order to ensure that any changes made during transition callbacks
@@ -183,7 +204,8 @@ module StateMachines
     #
     # For example,
     #
-    #   vehicle = Vehicle.create(:state => 'idling')  # => #<Vehicle id: 1, name: nil, state: "idling">
+    #   vehicle = Vehicle.create                      # => #<Vehicle id: 1, name: nil, state: "parked">
+    #   vehicle.ignite                                # => true
     #   vehicle.ignite                                # => false
     #   vehicle.errors.full_messages                  # => ["State cannot transition via \"ignite\""]
     #
@@ -414,13 +436,15 @@ module StateMachines
         # as they are defined.
         #
         # Also makes reload forget the record's refusal reasons (see
-        # {RefusalReset}).
+        # {RefusalReset}) and installs the guard making state changes
+        # event-only (see {StateGuard}).
         #
         # @param klass [Class] the new owner class
         # @return [Class] the assigned owner class
         def owner_class=(klass)
           super.tap do
             klass.include(RefusalReset) unless klass < RefusalReset
+            StateGuard.install(klass, attribute)
             register_integer_type if integer_type_registered?
           end
         end
@@ -647,6 +671,31 @@ module StateMachines
               ActiveSupport.error_reporter.report(e, handled: false, source: 'state_machines-activerecord')
             end
           end
+        end
+
+        # Writes a value to the record. A state write is the machine's own
+        # (initialization, a transition persisting its destination, a
+        # rollback), so it is authorized for the duration of this single
+        # write: callbacks running around it are not (see {StateGuard}).
+        #
+        # @param object [ActiveRecord::Base] record being written
+        # @param attr_sym [Symbol] attribute kind (:state, :event, ...)
+        # @param value [Object] the value to write
+        # @param ivar [Boolean] whether to write an instance variable
+        # @return [Object] the written value
+        def write(object, attr_sym, value, ivar = false)
+          return super unless attr_sym == :state && !ivar
+
+          StateGuard.authorize(object, StateGuard.guarded_name(self)) { super }
+        end
+
+        # Runs state events around validation, first refusing to start a
+        # transition from a state changed without an event.
+        #
+        # @param object [ActiveRecord::Base] record being validated
+        def around_validation(object, &)
+          StateGuard.verify_before_transitions!(object)
+          super
         end
 
         # Machine internals (state matching, validations) call read() to get the
@@ -913,7 +962,9 @@ module StateMachines
         # even NULL, is the record's state. Only blank attributes are filled,
         # static initial states before dynamic ones (which may depend on them),
         # and before +after_find+/+after_initialize+ callbacks run, so those
-        # callbacks can still override the state.
+        # callbacks see the initialized state (and may fire events from it).
+        # The writes are the machine's own, so they are authorized (see
+        # {StateGuard}) and run no callbacks.
         #
         # @param record [ActiveRecord::Base] the record being loaded
         # @return [void]
@@ -966,11 +1017,13 @@ module StateMachines
       def define_state_initializer
         define_helper :instance, <<-END_EVAL, __FILE__, __LINE__ + 1
           def initialize(attributes = nil, *)
+            StateMachines::Integrations::ActiveRecord::StateGuard.begin_construction(self)
             super(attributes) do |*args|
               attributes = (attributes || {}).transform_keys { |key| self.class.attribute_aliases[key.to_s] || key }
               scoped_attributes = attributes.merge(self.class.scope_attributes)
 
               self.class.state_machines.initialize_states(self, {}, scoped_attributes)
+              StateMachines::Integrations::ActiveRecord::StateGuard.finish_construction(self)
               yield(*args) if block_given?
             end
           end
@@ -1008,6 +1061,7 @@ module StateMachines
 
       # Runs state events around the machine's :save action
       def around_save(object, &)
+        StateGuard.verify_before_transitions!(object)
         # Pass fiber: false to avoid deadlocks with ActiveRecord's LoadInterlockAwareMonitor
         object.class.state_machines.transitions(object, action, fiber: false).perform(&)
       end

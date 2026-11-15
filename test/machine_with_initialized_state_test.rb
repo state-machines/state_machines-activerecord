@@ -2,6 +2,8 @@
 
 require_relative 'test_helper'
 
+# Building a record with a state other than its initial state is a direct
+# state assignment: there is no new-record loophole.
 class MachineWithInitializedStateTest < BaseTestCase
   def setup
     @model = new_model
@@ -9,35 +11,44 @@ class MachineWithInitializedStateTest < BaseTestCase
     @machine.state :idling
   end
 
-  def test_should_allow_nil_initial_state_when_static
-    @machine.state nil
-
-    record = @model.new(state: nil)
-    assert_nil record.state
+  def test_should_allow_initial_state_when_static
+    record = @model.new(state: 'parked')
+    assert_equal 'parked', record.state
   end
 
-  def test_should_allow_nil_initial_state_when_dynamic
+  def test_should_allow_initial_state_when_dynamic
+    @machine.initial_state = -> { :parked }
+    record = @model.new(state: 'parked')
+    assert_equal 'parked', record.state
+  end
+
+  def test_should_refuse_nil_state_when_static
+    @machine.state nil
+
+    assert_raises(StateMachines::DirectStateAssignment) { @model.new(state: nil) }
+  end
+
+  def test_should_refuse_nil_state_when_dynamic
     @machine.state nil
 
     @machine.initial_state = -> { :parked }
-    record = @model.new(state: nil)
-    assert_nil record.state
+    assert_raises(StateMachines::DirectStateAssignment) { @model.new(state: nil) }
   end
 
-  def test_should_allow_different_initial_state_when_static
-    record = @model.new(state: 'idling')
-    assert_equal 'idling', record.state
+  def test_should_refuse_different_initial_state_when_static
+    assert_raises(StateMachines::DirectStateAssignment) { @model.new(state: 'idling') }
   end
 
-  def test_should_allow_different_initial_state_when_using_create_with
-    record = @model.create_with(state: 'idling').new
-
-    assert_equal 'idling', record.state
+  def test_should_refuse_different_initial_state_when_using_create_with
+    assert_raises(StateMachines::DirectStateAssignment) { @model.create_with(state: 'idling').new }
   end
 
-  def test_should_allow_different_initial_state_when_dynamic
+  def test_should_allow_initial_state_when_using_create_with
+    assert_equal 'parked', @model.create_with(state: 'parked').new.state
+  end
+
+  def test_should_refuse_different_initial_state_when_dynamic
     @machine.initial_state = -> { :parked }
-    record = @model.new(state: 'idling')
-    assert_equal 'idling', record.state
+    assert_raises(StateMachines::DirectStateAssignment) { @model.new(state: 'idling') }
   end
 end

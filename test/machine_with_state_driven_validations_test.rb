@@ -16,17 +16,20 @@ class MachineWithStateDrivenValidationsTest < BaseTestCase
   end
 
   def test_should_be_valid_if_validation_fails_outside_state_scope
-    record = @model.new(state: 'parked', seatbelt: nil)
+    record = create_in_state(@model, 'parked')
+    record.seatbelt = nil
     assert record.valid?
   end
 
   def test_should_be_invalid_if_validation_fails_within_state_scope
-    record = @model.new(state: 'first_gear', seatbelt: nil)
+    record = create_in_state(@model, 'first_gear')
+    record.seatbelt = nil
     refute record.valid?
   end
 
   def test_should_be_valid_if_validation_succeeds_within_state_scope
-    record = @model.new(state: 'second_gear', seatbelt: true)
+    record = create_in_state(@model, 'second_gear')
+    record.seatbelt = true
     assert record.valid?
   end
 end

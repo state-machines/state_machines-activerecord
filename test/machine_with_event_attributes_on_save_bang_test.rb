@@ -5,13 +5,12 @@ require_relative 'test_helper'
 class MachineWithEventAttributesOnSaveBangTest < BaseTestCase
   def setup
     @model = new_model
-    @machine = StateMachines::Machine.new(@model)
+    @machine = StateMachines::Machine.new(@model, initial: :parked)
     @machine.event :ignite do
       transition parked: :idling
     end
 
     @record = @model.new
-    @record.state = 'parked'
     @record.state_event = 'ignite'
   end
 
@@ -21,7 +20,7 @@ class MachineWithEventAttributesOnSaveBangTest < BaseTestCase
   end
 
   def test_should_fail_if_event_has_no_transition
-    @record.state = 'idling'
+    @record.ignite(false)
     assert_raise(ActiveRecord::RecordInvalid) { @record.save! }
   end
 

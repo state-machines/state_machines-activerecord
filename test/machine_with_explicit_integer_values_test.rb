@@ -41,18 +41,25 @@ class MachineWithExplicitIntegerValuesTest < BaseTestCase
     assert_equal :pending, @record.status_name
   end
 
-  def test_should_accept_integer_on_write
-    @record.status = 2
+  def test_should_accept_equivalent_values_on_write
+    @record.status = 0
+    @record.status = '0'
 
-    assert_equal 2, @record.status
-    assert_equal :declined, @record.status_name
+    assert_equal 0, @record.status
+    refute_predicate @record, :changed?
   end
 
-  def test_should_accept_numeric_string_on_write
-    @record.status = '1'
+  def test_should_refuse_other_integer_on_write
+    assert_raises(StateMachines::DirectStateAssignment) { @record.status = 2 }
+    assert_raises(StateMachines::DirectStateAssignment) { @record.status = '1' }
+    assert_equal 0, @record.status
+  end
 
-    assert_equal 1, @record.status
-    assert_equal :approved, @record.status_name
+  def test_should_keep_raw_integer_on_raw_repair
+    @record.update_column(:status, 2)
+
+    assert_equal 2, @record.reload.status
+    assert_equal :declined, @record.status_name
   end
 
   def test_should_persist_explicit_integer_on_save

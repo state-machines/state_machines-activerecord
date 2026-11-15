@@ -7,8 +7,8 @@ class MachineWithFailedBeforeCallbacksTest < BaseTestCase
     @callbacks = []
 
     @model = new_model
-    @machine = StateMachines::Machine.new(@model)
-    @machine.state :parked, :idling
+    @machine = StateMachines::Machine.new(@model, initial: :parked)
+    @machine.state :idling
     @machine.event :ignite
     @machine.before_transition do
       @callbacks << :before_1
@@ -22,7 +22,7 @@ class MachineWithFailedBeforeCallbacksTest < BaseTestCase
       @callbacks << :around_after
     end
 
-    @record = @model.new(state: 'parked')
+    @record = @model.new
     @transition = StateMachines::Transition.new(@record, @machine, :ignite, :parked, :idling)
     @result = @transition.perform
   end

@@ -9,12 +9,16 @@ class MachineWithInitializedAliasedAttributeTest < BaseTestCase
     @machine = StateMachines::Machine.new(@model, :initial => :parked, :attribute => :state)
     @machine.state :started
 
-    @record = @model.new(:custom_status => :started)
+    @record = @model.new(:custom_status => :parked)
   end
 
   def test_should_match_original_attribute_value
-    refute @record.state?(:parked)
-    assert @record.state?(:started)
+    assert @record.state?(:parked)
+    refute @record.state?(:started)
+  end
+
+  def test_should_refuse_non_initial_state_through_alias
+    assert_raises(StateMachines::DirectStateAssignment) { @model.new(:custom_status => :started) }
   end
 end
 

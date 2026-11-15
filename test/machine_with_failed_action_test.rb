@@ -8,8 +8,8 @@ class MachineWithFailedActionTest < BaseTestCase
       validates_inclusion_of :state, in: %w[first_gear]
     end
 
-    @machine = StateMachines::Machine.new(@model)
-    @machine.state :parked, :idling
+    @machine = StateMachines::Machine.new(@model, initial: :parked)
+    @machine.state :idling
     @machine.event :ignite
 
     @callbacks = []
@@ -22,7 +22,7 @@ class MachineWithFailedActionTest < BaseTestCase
       @callbacks << :around_after
     end
 
-    @record = @model.new(state: 'parked')
+    @record = @model.new
     @transition = StateMachines::Transition.new(@record, @machine, :ignite, :parked, :idling)
     @result = @transition.perform
   end

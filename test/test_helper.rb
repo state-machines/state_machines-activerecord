@@ -46,6 +46,19 @@ class BaseTestCase < ActiveSupport::TestCase
     model
   end
 
+  # Creates a record and moves it to +state+ through raw persistence
+  # (+update_column+): query fixtures, not state changes, which go through
+  # events.
+  #
+  # @param model [Class] the model class
+  # @param state [Object] the stored state value
+  # @param column [Symbol] the state column
+  # @param attributes [Hash] other attributes to create the record with
+  # @return [ActiveRecord::Base] the created record
+  def create_in_state(model, state, column: :state, **attributes)
+    model.create!(attributes).tap { |record| record.update_column(column, state) }
+  end
+
   def clear_active_support_dependencies
     return unless defined?(ActiveSupport::Dependencies)
 
