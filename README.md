@@ -60,6 +60,83 @@ class Vehicle < ApplicationRecord
 end
 ```
 
+## State changes go through events
+
+The only way to change a record's state through the model is an event:
+
+```ruby
+vehicle.ignite                  # fire it
+vehicle.ignite!                 # fire it, raising on refusal
+vehicle.state_event = 'ignite'  # queue it for the next save
+vehicle.save
+vehicle.update(state_event: 'ignite')
+```
+
+Writing a *different* state directly raises
+`StateMachines::DirectStateAssignment` before the value changes, whichever
+writer is used: `state=`, mass assignment (`assign_attributes`, `new`,
+`create`, `update`), an attribute alias, `record[:state] =`,
+`write_attribute`, `update_attribute`, or a Rails enum bang method
+(`processing!`). Assigning the state the record already holds (`:parked`,
+`"parked"`, or the stored integer for integer-backed machines) is allowed and
+runs nothing. The error names the machine, the attribute, both values, and
+the alternatives below; a refused assignment is not an event refusal, so no
+`<event>_refusal` reason is recorded.
+
+```ruby
+vehicle = Vehicle.create!        # parked
+vehicle.state = 'idling'         # => StateMachines::DirectStateAssignment
+vehicle.update(state: 'idling', state_event: 'ignite')
+                                 # => StateMachines::DirectStateAssignment
+```
+
+- New records can be built with their initial state (static, dynamic, or the
+  schema default), e.g. `Vehicle.new(state: 'parked')`, but not with another
+  one: `Vehicle.create!(state: 'idling')`, `create_with(state: 'idling')` and
+  an initializer block writing `idling` all raise.
+- Callbacks are held to the same rule: a `before_transition`,
+  `after_transition`, `before_save` or `after_initialize` writing the state
+  raises. Only the machine's own writes (initialization, the transition's
+  write, rollback after a failure) are authorized, each for that single
+  write. Loading from the database, `reload`, `restore_attributes`, `dup`
+  and `becomes` keep the state they hold.
+- As a backstop, `save`, `save!`, `save(validate: false)` and
+  `update_attribute` refuse to persist a state that changed without going
+  through the setter (an in-place mutation, a write to the attribute set),
+  and no queued event runs from such a state.
+- `becomes` preserves the state without running transition callbacks, and
+  raises `StateMachines::PendingStateEvent` while an event attribute or a
+  transition prepared by validation is still queued.
+
+### Forms
+
+Expose events, not states. Permit the event attribute and leave the state
+attribute out of strong parameters:
+
+```ruby
+def vehicle_params
+  params.require(:vehicle).permit(:name, :state_event)
+end
+```
+
+A form submitting `state` alongside (or instead of) `state_event` gets a
+`DirectStateAssignment` instead of a silent state change.
+
+### Data repair
+
+Raw persistence stays outside the state machine on purpose: no event is
+inferred, no callback or validation runs.
+
+```ruby
+vehicle.update_column(:state, 'idling')
+Vehicle.where(id: ids).update_all(state: 'parked')
+Vehicle.upsert_all(rows)
+ActiveRecord::Base.connection.execute("UPDATE vehicles SET state = 'parked' WHERE ...")
+```
+
+Other instances already loaded in memory keep their old state until you
+`reload` them.
+
 ### Initial state from the schema default
 
 When a machine has no `initial:` option and its attribute has a schema
@@ -152,7 +229,8 @@ When enum integration is detected, the gem automatically:
 order = Order.create(status: :pending)
 order.pending?        # => true (Rails enum method)
 order.processing?     # => false (Rails enum method)
-order.processing!     # Sets status to :processing (Rails enum method)
+order.processing!     # => StateMachines::DirectStateAssignment (writes the state directly)
+order.process         # Fire the event instead
 
 Order.pending         # Rails enum scope
 Order.processing      # Rails enum scope
@@ -208,11 +286,15 @@ class Order < ApplicationRecord
   state_machine :status, initial: :pending do
     state :pending
     state :approved
+
+    event :approve do
+      transition pending: :approved
+    end
   end
 end
 
 order = Order.create!
-order.status = :approved
+order.approve!
 order.status # => "approved"
 # The database stores 1.
 ```
@@ -317,8 +399,11 @@ end
 The initial state is applied to new records *and* to records loaded from the
 database (loading skips `initialize`, so the integration fills the blank
 attribute itself). That happens before `after_find`/`after_initialize`
-callbacks run, so those can still override it. State-scoped validations run
-as they do for column-backed machines. Machines on real columns are never
+callbacks run, so those see the initialized state and may fire events from it
+(writing the state directly raises, as everywhere else). State-scoped validations run
+as they do for column-backed machines, and the attribute's writer follows the
+same [event-only rule](#state-changes-go-through-events) (there is no column,
+so the raw-repair APIs do not apply). Machines on real columns are never
 re-initialized on load: a `NULL` in the database stays `nil`.
 
 ## Why an event was refused
