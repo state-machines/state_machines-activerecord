@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.301.0](https://github.com/state-machines/state_machines-activerecord/compare/state_machines-activerecord/v0.300.0...state_machines-activerecord/v0.301.0) (2026-11-15)
+
+
+### Features
+
+* allow direct state assignment by default; opt in with direct_assignment: :deny ([836f1b5](https://github.com/state-machines/state_machines-activerecord/commit/836f1b5b4160ef8ad4d149d56860eac57b9f672f))
+
 ## [0.300.0](https://github.com/state-machines/state_machines-activerecord/compare/state_machines-activerecord/v0.200.0...state_machines-activerecord/v0.300.0) (2026-11-15)
 
 
