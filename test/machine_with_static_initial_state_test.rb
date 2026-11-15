@@ -67,10 +67,11 @@ class MachineWithStaticInitialStateTest < BaseTestCase
   end
 
   def test_should_not_set_initial_state_after_already_initialized
+    @machine.event(:ignite) { transition parked: :idling }
     record = @model.new(value: 1)
     assert_equal 'parked', record.state
 
-    record.state = 'idling'
+    record.ignite(false)
     record.attributes = {}
     assert_equal 'idling', record.state
   end
@@ -92,14 +93,14 @@ class MachineWithStaticInitialStateTest < BaseTestCase
   def test_should_use_stored_values_when_loading_from_database
     @machine.state :idling
 
-    record = @model.find(@model.create(state: 'idling').id)
+    record = @model.find(create_in_state(@model, 'idling').id)
     assert_equal 'idling', record.state
   end
 
   def test_should_use_stored_values_when_loading_from_database_with_nil_state
     @machine.state nil
 
-    record = @model.find(@model.create(state: nil).id)
+    record = @model.find(create_in_state(@model, nil).id)
     assert_nil record.state
   end
 
@@ -116,7 +117,7 @@ class MachineWithStaticInitialStateTest < BaseTestCase
     MachineWithStaticInitialStateTest.const_set('Owner', owner_model)
 
     owner = owner_model.create
-    @model.create(state: 'idling', owner_id: owner.id)
+    create_in_state(@model, 'idling', owner_id: owner.id)
     assert_equal 'idling', owner.vehicles[0].state
   end
 
@@ -133,7 +134,7 @@ class MachineWithStaticInitialStateTest < BaseTestCase
     MachineWithStaticInitialStateTest.const_set('Owner', owner_model)
 
     owner = owner_model.create
-    @model.create(state: 'idling', owner_id: owner.id)
+    create_in_state(@model, 'idling', owner_id: owner.id)
     assert_equal 'idling', owner.vehicle.state
   end
 
@@ -150,7 +151,7 @@ class MachineWithStaticInitialStateTest < BaseTestCase
 
     MachineWithStaticInitialStateTest.const_set('Driver', driver_model)
 
-    record = @model.create(state: 'idling')
+    record = create_in_state(@model, 'idling')
     driver = driver_model.create(vehicle_id: record.id)
     assert_equal 'idling', driver.vehicle.state
   end

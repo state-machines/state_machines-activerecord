@@ -10,13 +10,12 @@ class MachineWithEventAttributesOnCustomActionTest < BaseTestCase
       end
     end
     @model = Class.new(@superclass)
-    @machine = StateMachines::Machine.new(@model, action: :persist)
+    @machine = StateMachines::Machine.new(@model, action: :persist, initial: :parked)
     @machine.event :ignite do
       transition parked: :idling
     end
 
     @record = @model.new
-    @record.state = 'parked'
     @record.state_event = 'ignite'
   end
 

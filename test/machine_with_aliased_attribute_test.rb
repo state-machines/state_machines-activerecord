@@ -18,7 +18,6 @@ class MachineWithAliasedAttributeTest < BaseTestCase
     @record.vehicle_status = nil
     refute @record.status?(:parked)
 
-    @record.vehicle_status = 'parked'
-    assert @record.status?(:parked)
+    assert create_in_state(@model, 'parked', column: :vehicle_status).status?(:parked)
   end
 end

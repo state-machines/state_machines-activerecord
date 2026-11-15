@@ -12,13 +12,13 @@ class MachineWithEventAttributesOnAutosaveTest < BaseTestCase
     @owner_model = new_model(:owner)
     MachineWithEventAttributesOnAutosaveTest.const_set('Owner', @owner_model)
 
-    machine = StateMachines::Machine.new(@vehicle_model)
+    machine = StateMachines::Machine.new(@vehicle_model, initial: :parked)
     machine.event :ignite do
       transition parked: :idling
     end
 
     @owner = @owner_model.create
-    @vehicle = @vehicle_model.create(state: 'parked', owner_id: @owner.id)
+    @vehicle = @vehicle_model.create(owner_id: @owner.id)
   end
 
   def test_should_persist_has_one_autosave

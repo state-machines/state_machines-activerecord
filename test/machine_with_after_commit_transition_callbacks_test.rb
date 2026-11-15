@@ -297,7 +297,7 @@ class MachineWithAfterCommitTransitionCallbacksTest < BaseTestCase
 
     assert_empty fired, 'Callback scoped to after_commit => done must not fire for parked => idling'
 
-    record.update!(state: 'after_commit')
+    record.update_column(:state, 'after_commit')
     record.finish
 
     assert_equal [:scoped], fired

@@ -145,14 +145,28 @@ class MachineWithEnumIntegrationTest < BaseTestCase
     end
   end
 
+  test 'should refuse rails enum bang writers that change the state' do
+    @model.state_machine(:status) do
+      state :pending, :processing
+      event(:process) { transition pending: :processing }
+    end
+    record = @model.create!
+
+    assert_raises(StateMachines::DirectStateAssignment) { record.processing! }
+    assert_equal 'pending', record.reload.status
+    record.pending!
+    assert record.process
+    assert_equal 'processing', record.reload.status
+  end
+
   test 'should generate prefixed scope methods' do
     @model.state_machine(:status) do
       state :pending, :processing, :completed, :failed
     end
 
     pending_record = @model.create(status: :pending)
-    processing_record = @model.create(status: :processing)
-    completed_record = @model.create(status: :completed)
+    processing_record = create_in_state(@model, :processing, column: :status)
+    completed_record = create_in_state(@model, :completed, column: :status)
 
     # Test record states using shared assertions
     assert_sm_state(pending_record, :pending, machine_name: :status)

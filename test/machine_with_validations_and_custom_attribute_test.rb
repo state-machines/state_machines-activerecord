@@ -12,12 +12,12 @@ class MachineWithValidationsAndCustomAttributeTest < BaseTestCase
   end
 
   def test_should_add_validation_errors_to_custom_attribute
-    @record.state = 'invalid'
+    @record = create_in_state(@model, 'invalid')
 
     refute @record.valid?
     assert_equal ['State is invalid'], @record.errors.full_messages
 
-    @record.state = 'parked'
+    @record.update_column(:state, 'parked')
     assert @record.valid?
   end
 end

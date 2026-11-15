@@ -64,11 +64,12 @@ class MachineWithSchemaDefaultInitialStateTest < BaseTestCase
     assert_match(/have defined a different default for "status"/, $stderr.string)
   end
 
-  def test_should_prefer_explicitly_assigned_state
+  def test_should_refuse_explicitly_assigned_non_initial_state
     model = model_with_column(:string, default: 'active', null: false)
     model.state_machine(:status) { state :active, :inactive }
 
-    assert_equal 'inactive', model.new(status: 'inactive').status
+    assert_equal 'active', model.new(status: 'active').status
+    assert_raises(StateMachines::DirectStateAssignment) { model.new(status: 'inactive') }
   end
 
   def test_should_ignore_default_that_is_not_a_defined_state

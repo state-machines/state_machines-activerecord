@@ -5,13 +5,12 @@ require_relative 'test_helper'
 class MachineWithEventAttributesOnValidationTest < BaseTestCase
   def setup
     @model = new_model
-    @machine = StateMachines::Machine.new(@model)
+    @machine = StateMachines::Machine.new(@model, initial: :parked)
     @machine.event :ignite do
       transition parked: :idling
     end
 
     @record = @model.new
-    @record.state = 'parked'
     @record.state_event = 'ignite'
   end
 
@@ -22,7 +21,7 @@ class MachineWithEventAttributesOnValidationTest < BaseTestCase
   end
 
   def test_should_fail_if_event_has_no_transition
-    @record.state = 'idling'
+    @record.ignite(false)
     refute @record.valid?
     assert_equal ['State event cannot transition when idling'], @record.errors.full_messages
   end

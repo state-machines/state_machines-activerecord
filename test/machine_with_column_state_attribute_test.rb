@@ -28,8 +28,7 @@ class MachineWithColumnStateAttributeTest < BaseTestCase
   def test_should_test_for_existence_on_predicate_without_parameters
     assert @record.state?
 
-    @record.state = nil
-    refute @record.state?
+    refute create_in_state(@model, nil).state?
   end
 
   def test_should_return_false_for_predicate_if_does_not_match_current_value

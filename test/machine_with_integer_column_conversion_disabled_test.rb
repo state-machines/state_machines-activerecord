@@ -50,11 +50,11 @@ class MachineWithIntegerColumnConversionDisabledTest < BaseTestCase
     assert_equal :pending, @record.status_name
   end
 
-  def test_should_not_convert_state_name_assignment
-    @record.status = :approved
+  # Without conversion a state name casts to nil: a different stored value
+  def test_should_refuse_unconverted_state_name_assignment
+    assert_raises(StateMachines::DirectStateAssignment) { @record.status = :approved }
 
-    assert_nil @record.status
-    assert_equal :approved, @record.status_before_type_cast
+    assert_equal 0, @record.status
   end
 
   def test_transition_fires_correctly_with_raw_integer_values

@@ -7,12 +7,12 @@ class MachineNestedActionTest < BaseTestCase
     @callbacks = []
 
     @model = new_model
-    @machine = StateMachines::Machine.new(@model)
+    @machine = StateMachines::Machine.new(@model, initial: :parked)
     @machine.event :ignite do
       transition parked: :idling
     end
 
-    @record = @model.new(state: 'parked')
+    @record = @model.new
   end
 
   def test_should_allow_transition_prior_to_creation_if_skipping_action
