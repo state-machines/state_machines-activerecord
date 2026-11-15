@@ -1,5 +1,28 @@
 # Changelog
 
+## [0.300.0](https://github.com/state-machines/state_machines-activerecord/compare/state_machines-activerecord/v0.200.0...state_machines-activerecord/v0.300.0) (2026-11-15)
+
+
+### ⚠ BREAKING CHANGES
+
+* make state changes event-only through the model ([#47](https://github.com/state-machines/state_machines-activerecord/issues/47))
+* require state_machines and state_machines-activemodel >= 0.300.0
+* ActiveRecord 8.0+ is now required.
+
+### Features
+
+* clear refusal reasons on reload and cover them through ActiveRecord ([d13c772](https://github.com/state-machines/state_machines-activerecord/commit/d13c7724b282297d7b07d7b445f5e39d0bfa156d))
+* drop Rails 7.2 support ([010459a](https://github.com/state-machines/state_machines-activerecord/commit/010459ad0364b59733359771e130c5af1598fbbd))
+* make state changes event-only through the model ([#47](https://github.com/state-machines/state_machines-activerecord/issues/47)) ([4b1a39d](https://github.com/state-machines/state_machines-activerecord/commit/4b1a39dd8ac834cc790ca521e687392ff90f2f76))
+* require state_machines and state_machines-activemodel &gt;= 0.300.0 ([4186a5a](https://github.com/state-machines/state_machines-activerecord/commit/4186a5aa878714162d497d928d2711581ac90018))
+* run tests with padded_cell on CRuby ([#141](https://github.com/state-machines/state_machines-activerecord/issues/141)) ([dfab384](https://github.com/state-machines/state_machines-activerecord/commit/dfab384a7430fd5a274d719ab615bc61cd5374ee))
+* use the schema default as initial state when none is configured ([507e378](https://github.com/state-machines/state_machines-activerecord/commit/507e378bb92cc5fd89c3a84905cb8bc98be16df4)), closes [#73](https://github.com/state-machines/state_machines-activerecord/issues/73)
+
+
+### Bug Fixes
+
+* initialize transient state attributes on records loaded from the database ([5cc0212](https://github.com/state-machines/state_machines-activerecord/commit/5cc0212346d878a205a625574bcc0d78793e6866)), closes [#93](https://github.com/state-machines/state_machines-activerecord/issues/93)
+
 ## [0.200.0](https://github.com/state-machines/state_machines-activerecord/compare/state_machines-activerecord/v0.103.0...state_machines-activerecord/v0.200.0) (2026-06-12)
 
 
