@@ -466,11 +466,51 @@ module StateMachines
           result
         end
 
+        # Sets the initial state, remembering whether one was configured
+        # explicitly. Without an explicit initial state the attribute's schema
+        # default may supply it (see {#initial_state}).
+        #
+        # @param new_initial_state [Symbol, Proc, nil] the initial state name,
+        #   a lambda resolving it per record, or nil for none
+        # @return [Symbol, Proc, nil] the assigned initial state
+        def initial_state=(new_initial_state)
+          @explicit_initial_state = !new_initial_state.nil?
+          super
+        end
+
+        # Gets the initial state for the given record.
+        #
+        # An explicit +initial:+ (static or dynamic) always wins. Without one,
+        # the attribute's schema default (the database column default, or a
+        # default declared through the Attributes API) is used when it names a
+        # defined state. The default is read lazily, when a record is built, so
+        # defining the machine never requires the table to exist. A default
+        # that names no defined state is ignored and the initial state stays
+        # nil (the class-load conflicting-default warning reports it).
+        #
+        # @param object [ActiveRecord::Base] the record being initialized
+        # @return [StateMachines::State, nil] the initial state
+        def initial_state(object)
+          return super if explicit_initial_state?
+
+          schema_default_state || super
+        end
+
+        # Whether the machine was given an explicit (non-nil) initial state.
+        #
+        # @return [Boolean]
+        def explicit_initial_state?
+          !!@explicit_initial_state
+        end
+
         # Warns at most once when the column default conflicts with the
         # machine's initial state. The conflict is re-evaluated as states are
-        # defined, so remember when the warning has been issued.
+        # defined, so remember when the warning has been issued. No warning is
+        # issued when the machine has no explicit initial state and the column
+        # default names a defined state: the default then *is* the initial
+        # state.
         def check_conflicting_attribute_default
-          return if @attribute_default_conflict_warned
+          return if @attribute_default_conflict_warned || schema_default_initial_state?
 
           initial_state = states.detect(&:initial)
           conflict = !owner_class_attribute_default.nil? && (
@@ -626,6 +666,24 @@ module StateMachines
         end
 
         private
+
+        # Whether the schema default supplies the initial state: there is no
+        # explicit initial state and the default names a defined state.
+        #
+        # @return [Boolean]
+        def schema_default_initial_state?
+          !explicit_initial_state? && !schema_default_state.nil?
+        end
+
+        # Finds the named state matching the attribute's schema default.
+        #
+        # @return [StateMachines::State, nil] the matching state, or nil when
+        #   there is no default (or no readable schema) or it names no state
+        def schema_default_state
+          return if owner_class_attribute_default.nil?
+
+          states.detect { |state| state.name && owner_class_attribute_default_matches?(state) }
+        end
 
         # Re-runs the conflicting-default check for states defined after
         # initialization. Skipped until an initial state exists (the DSL block
@@ -842,14 +900,20 @@ module StateMachines
         action == :save
       end
 
-      # Gets the db default for the machine's attribute.
-      # For integer columns the raw pre-type-registration default is returned so
-      # that check_conflicting_attribute_default can compare integers to integers.
+      # Gets the db default for the machine's attribute, resolving attribute
+      # aliases to the underlying column. For integer columns the raw
+      # pre-type-registration default is returned so that
+      # check_conflicting_attribute_default can compare integers to integers.
+      # Returns nil while the schema cannot be read (no connection, no table).
+      #
+      # @return [Object, nil] the default value
       def owner_class_attribute_default
         return @raw_integer_column_default if defined?(@raw_integer_column_default)
         return unless owner_class.connected? && owner_class.table_exists?
 
-        owner_class.column_defaults[attribute.to_s]
+        owner_class.column_defaults[owner_class.attribute_aliases.fetch(attribute.to_s, attribute.to_s)]
+      rescue ::ActiveRecord::StatementInvalid, ::ActiveRecord::ConnectionNotEstablished
+        nil
       end
 
       # Checks whether the given state matches the column default. When the

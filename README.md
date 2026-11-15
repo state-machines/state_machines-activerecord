@@ -60,6 +60,39 @@ class Vehicle < ApplicationRecord
 end
 ```
 
+### Initial state from the schema default
+
+When a machine has no `initial:` option and its attribute has a schema
+default (a database column default, or an Attributes API `default:`) that
+names a defined state, that default is the initial state:
+
+```ruby
+# db/schema.rb
+create_table "accounts" do |t|
+  t.string "state", default: "active", null: false
+end
+
+class Account < ApplicationRecord
+  state_machine do
+    state :active, :suspended
+    event(:suspend) { transition active: :suspended }
+  end
+end
+
+Account.new.state       # => "active"
+Account.new.suspend     # => true
+```
+
+- An explicit static `initial:` always wins over the schema default (and the
+  "different default" warning is printed, as before).
+- A dynamic `initial: ->(record) { ... }` only fills a blank attribute, so a
+  schema default keeps precedence over it; the warning is printed.
+- The default is read when a record is built, not when the class is loaded,
+  so defining the machine before the table exists (e.g. while migrating) is
+  fine.
+- A default that names no defined state is ignored: the initial state stays
+  `nil` and the "different default" warning is printed at class load.
+
 ### Scopes
 Usage of the generated scopes (assuming default column `state`):
 
