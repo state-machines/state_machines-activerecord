@@ -380,6 +380,18 @@ module StateMachines
       @defaults = { action: :save, use_transactions: true }
       @auto_convert_integer_state_attributes = true
 
+      # Forgets the refusal reasons recorded on a record when it is reloaded:
+      # they describe attempts made against the state being discarded.
+      module RefusalReset
+        # Reloads the record and forgets its refusal reasons.
+        #
+        # @return [ActiveRecord::Base] the reloaded record
+        # @see StateMachines::Event#refusal
+        def reload(*)
+          super.tap { StateMachines::Event.clear_refusals(self) }
+        end
+      end
+
       # Machine-specific methods for enum integration
       module MachineMethods
         # Enum integration metadata storage
@@ -401,10 +413,14 @@ module StateMachines
         # sees this machine's (cloned) states, picking up subclass-added states
         # as they are defined.
         #
+        # Also makes reload forget the record's refusal reasons (see
+        # {RefusalReset}).
+        #
         # @param klass [Class] the new owner class
         # @return [Class] the assigned owner class
         def owner_class=(klass)
           super.tap do
+            klass.include(RefusalReset) unless klass < RefusalReset
             register_integer_type if integer_type_registered?
           end
         end

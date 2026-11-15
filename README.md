@@ -266,6 +266,49 @@ class Vehicle < ApplicationRecord
 end
 ```
 
+## Why an event was refused
+
+An event method still returns `false` when it is refused, and `errors` is filled
+as before. The `<event>_refusal` reader from state_machines tells the reasons
+apart (`nil` after a success):
+
+| Reason           | When                                                                     |
+|------------------|--------------------------------------------------------------------------|
+| `:no_transition` | No transition for the event from the current state                       |
+| `:guard`         | An `if:`/`unless:` rejected the transition                               |
+| `:halted`        | A `before_transition` returned `false`, or an `around_transition` did not yield |
+| `:action_failed` | `save` returned `false` (validations, a `before_save` that throws `:abort`) or `save!` raised |
+
+```ruby
+vehicle.shift_up             # => false
+vehicle.shift_up_refusal     # => :action_failed
+vehicle.errors.full_messages # => ["Seatbelt on can't be blank"]
+
+vehicle.shift_up!            # => StateMachines::InvalidTransition, #reason => :action_failed
+
+# Event attributes record the reason too, including when save! raises
+vehicle.state_event = 'shift_up'
+vehicle.save!                # => ActiveRecord::RecordInvalid
+vehicle.shift_up_refusal     # => :action_failed
+```
+
+In parallel (`fire_events`) only the events that caused the refusal carry a
+reason; a failed `save` is shared, so all of them read `:action_failed`.
+
+When `save` fails because another machine's event attribute was refused inside
+it, the fired event carries that reason, matching the bang message:
+
+```ruby
+vehicle.alarm_state_event = 'disable' # its before_transition halts
+vehicle.ignite                        # => false
+vehicle.ignite_refusal                # => :halted (not :action_failed)
+```
+
+`reload` forgets the reasons, and a `dup` / `clone` starts without any. The
+reader reports the most recent attempt on the record, so code firing events on
+one record from several threads should rely on the bang method's
+`InvalidTransition#reason` instead.
+
 ## Contributing
 
 1. Fork it ( https://github.com/state-machines/state_machines-activerecord/fork )
