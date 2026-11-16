@@ -3,7 +3,7 @@
 module StateMachines
   module Integrations
     module ActiveRecord
-      VERSION = '0.302.0'
+      VERSION = '0.303.0'
     end
   end
 end
