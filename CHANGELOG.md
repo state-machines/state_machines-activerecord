@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.303.0](https://github.com/state-machines/state_machines-activerecord/compare/state_machines-activerecord/v0.302.0...state_machines-activerecord/v0.303.0) (2026-11-16)
+
+
+### Features
+
+* add force_state! for audited data repair outside events ([2e1e1ac](https://github.com/state-machines/state_machines-activerecord/commit/2e1e1ac37bb2dc149aebaa15db17d7e8287b1cd3))
+
 ## [0.302.0](https://github.com/state-machines/state_machines-activerecord/compare/state_machines-activerecord/v0.301.0...state_machines-activerecord/v0.302.0) (2026-11-15)
 
 
