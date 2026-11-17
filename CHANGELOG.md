@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.304.0](https://github.com/state-machines/state_machines-activerecord/compare/state_machines-activerecord/v0.303.0...state_machines-activerecord/v0.304.0) (2026-11-17)
+
+
+### ⚠ BREAKING CHANGES
+
+* needs state_machines with 7aad05a; an around_transition no longer spans valid? and the following save, it wraps the save.
+
+### Bug Fixes
+
+* perform the save's transition on its own stack after valid? ([e395a13](https://github.com/state-machines/state_machines-activerecord/commit/e395a1349b0613b6e3506eb709c874d44c320e22))
+* require state_machines 0.304.0 ([90b6e75](https://github.com/state-machines/state_machines-activerecord/commit/90b6e75342d266afb995abb18c0ce6acf63df997))
+
 ## [0.303.0](https://github.com/state-machines/state_machines-activerecord/compare/state_machines-activerecord/v0.302.0...state_machines-activerecord/v0.303.0) (2026-11-16)
 
 
