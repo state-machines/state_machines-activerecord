@@ -38,19 +38,16 @@ class MachineWithEventAttributesOnValidationTest < BaseTestCase
     assert ran_callback
   end
 
-  def test_should_run_around_callbacks_before_yield
+  # valid? previews the transition: the around callbacks run with the save
+  def test_should_not_enter_around_callbacks
     ran_callback = false
     @machine.around_transition do |block|
       ran_callback = true
       block.call
     end
 
-    begin
-      @record.valid?
-    rescue ArgumentError
-      raise if StateMachines::Transition.pause_supported?
-    end
-    assert ran_callback
+    @record.valid?
+    refute ran_callback
   end
 
   def test_should_persist_new_state
@@ -101,11 +98,7 @@ class MachineWithEventAttributesOnValidationTest < BaseTestCase
       ran_callback = true
     end
 
-    begin
-      @record.valid?
-    rescue ArgumentError
-      raise if StateMachines::Transition.pause_supported?
-    end
+    @record.valid?
     refute ran_callback
   end
 
