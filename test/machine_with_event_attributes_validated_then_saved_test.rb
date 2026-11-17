@@ -15,10 +15,8 @@ class MachineWithEventAttributesValidatedThenSavedTest < BaseTestCase
     end
     machine = StateMachines::Machine.new(@model, initial: :parked)
     machine.event(:ignite) { transition parked: :idling }
-    log_callbacks(machine)
-
     @record = @model.create!
-    @log.clear
+    log_callbacks(machine)
     @record.state_event = 'ignite'
   end
 
