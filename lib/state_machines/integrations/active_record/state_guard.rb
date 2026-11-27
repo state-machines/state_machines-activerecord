@@ -387,7 +387,7 @@ module StateMachines
               next unless machine.direct_assignment_denied?
 
               name = guarded_name(machine)
-              next unless seen.add?(name) && record._has_attribute?(name) && !machine.transient_attribute?
+              next unless seen.add?(name) && record._has_attribute?(name) && !machine.transient_attribute?(record.class)
 
               current = record._read_attribute(name)
               legitimate = !record.attribute_changed?(name) ||
