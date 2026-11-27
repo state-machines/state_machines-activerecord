@@ -571,10 +571,13 @@ module StateMachines
         # columns, so it is cheap enough to call for every loaded record.
         # Returns false while the schema cannot be read.
         #
+        # @param klass [Class] the model class whose schema is read; pass the
+        #   record's class, since a machine inherited from an abstract class
+        #   keeps that table-less class as its owner
         # @return [Boolean]
-        def transient_attribute?
+        def transient_attribute?(klass = owner_class)
           name = attribute.to_s
-          !owner_class.columns_hash.key?(owner_class.attribute_aliases.fetch(name, name))
+          !klass.columns_hash.key?(klass.attribute_aliases.fetch(name, name))
         rescue ::ActiveRecord::StatementInvalid, ::ActiveRecord::ConnectionNotEstablished
           false
         end
@@ -1026,7 +1029,7 @@ module StateMachines
         # @param record [ActiveRecord::Base] the record being loaded
         # @return [void]
         def initialize_transient_states(record)
-          machines = record.class.state_machines.values.select(&:transient_attribute?)
+          machines = record.class.state_machines.values.select { |machine| machine.transient_attribute?(record.class) }
           static, dynamic = machines.partition { |machine| !machine.dynamic_initial_state? }
           (static + dynamic).each { |machine| machine.initialize_state(record) }
         end
